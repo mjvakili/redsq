@@ -1,0 +1,29 @@
+# GroupFinding
+# G3CGal
+# v07
+# 2014-03-06
+# Aaron Robotham <aaron.robotham@uwa.edu.au>
+#
+# Catalogue of all GAMA galaxies used in the G3C group finding DMU.
+#
+CATAID           1  -       meta.id;meta.main  GAMA CATAID
+RA               2  deg     pos.eq.ra          Right Ascension (J2000)
+DEC              3  deg     pos.eq.dec         Declination (J2000)
+Z                4  -       src.redshift       Heliocentric redshift
+Rpetro           5  mag     phot.mag           Petrosian apparent r-band magnitude (AB, extinction corrected) [GAMA selection magnitude]
+DM_100_25_75     6  mag     phot.mag.distMod   Distance modulus using H0=100 (km/s)/Mpc, Omega_m=0.25 and Omega_L=0.75    
+SURVEY_CODE      7  -       -                  Source for redshift: 1=SDSS, 2=2dFGRS, 3=MGC, 4=2SLAQ-LRG, 5=GAMA, 6=6dFGS, 7=UZC, 8=2QZ, 9=2SLAQ-QSO, 10=NED, 11=GAMA-LT, 12=WiggleZ  
+SigErr           8  km/s    phys.veloc         Velocity uncertainty (on redshift): assumed to be 30km/s for SDSS, 50km/s for GAMA and 80km/s for 2dFGRS
+GroupID          9  -       meta.id            GroupID for this galaxy in G3CFoFGroup, 0 is un-grouped
+RankIterCen     10  -       -                  Relative rank of the galaxy to the RA and Dec of the group 'IterCen' coordinates, where 1 indicates closest and 2 second closest etc
+SepIterCen      11  arcsec  phys.angSize       Projected angular separation of the galaxy to the RA and Dec of the group 'IterCen' coordinates
+CoSepIterCen    12  Mpc/h   phys.size.radius   Projected comoving distance separation of the galaxy to the RA and Dec of the group 'IterCen' coordinates
+AngSepIterCen   13  Mpc/h   phys.size.radius   Projected angular size distance (comoving/(1+z)) separation of the galaxy to the RA and Dec of the group 'IterCen' coordinates
+RankBCG         14  -       -                  Relative rank of the galaxy to the RA and Dec of the group 'BCG' coordinates, where 1 indicates closest and 2 second closest etc
+SepBCG          15  arcsec  phys.angSize       Projected angular separation of the galaxy to the RA and Dec of the group 'BCG' coordinates
+CoSepBCG        16  Mpc/h   phys.size.radius   Projected comoving distance separation of the galaxy to the RA and Dec of the group 'BCG' coordinates
+AngSepBCG       17  Mpc/h   phys.size.radius   Projected angular size distance (comoving/(1+z)) separation of the galaxy to the RA and Dec of the group 'BCG' coordinates
+RankCen         18  -       -                  Relative rank of the galaxy to the RA and Dec of the group 'Cen' coordinates, where 1 indicates closest and 2 second closest etc
+SepCen          19  arcsec  phys.angSize       Projected angular separation of the galaxy to the RA and Dec of the group 'Cen' coordinates
+CoSepCen        20  Mpc/h   phys.size.radius   Projected comoving distance separation of the galaxy to the RA and Dec of the group 'Cen' coordinates
+AngSepCen       21  Mpc/h   phys.size.radius   Projected angular size distance (comoving/(1+z)) separation of the galaxy to the RA and Dec of the group 'Cen' coordinates

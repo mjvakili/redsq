@@ -1,0 +1,57 @@
+# GroupFinding
+# G3CFoFGroup
+# v06
+# 2013-09-20
+# Aaron Robotham <aaron.robotham@uwa.edu.au>
+#
+# This is a catalogue of G3C GAMA group properties.
+#      
+GroupID          1  -          meta.id;meta.main       Unique group ID, as listed in the associated G3CGal links
+Nfof             2  -          -                       Group multiplicity
+IterCenCATAID    3  -          meta.id                 Reference ID of the iterative central galaxy (preferred position of the group centre), see Sec 4.2.1 of Robotham et al. (2011)
+IterCenRA        4  deg        pos.eq.ra               RA of the iterative central galaxy (in degrees J2000), see Sec 4.2.1 of Robotham et al. (2011)
+IterCenDEC       5  deg        pos.eq.dec              Dec of the iterative central galaxy (in degrees J2000), see Sec 4.2.1 of Robotham et al. (2011)
+IterCenZ         6  -          src.redshift            Redshift of the iterative central galaxy, see Sec 4.2.1 of Robotham et al. (2011)
+Zfof             7  -          src.redshift            Median redshift of the group
+Rad50            8  Mpc/h      phys.size.radius        Group radius defined by the 50th percentile group member, based on the projected distance away from IterCenID
+Rad1Sig          9  Mpc/h      phys.size.radius        Group radius defined by the 68th percentile group member, based on the projected distance away from IterCenID
+Rad100          10  Mpc/h      phys.size.radius        Group radius defined by the most distant group member, based on the projected distance away from IterCenID
+RelDen          11  -          -                       Relative galaxy space density (w.r.t. the SWML prediction) within a cylinder of radius 1.5 Mpc/h and offset 18Mpc/h (i.e. diameter 3.0 Mpc/h and total length 36 Mpc/h) centred on IterCenID
+Zcomp           12  -          -                       Average redshift completeness of the group: for each group member the redshift completeness within a projected 1.5 Mpc/h radius (at the position of the galaxy) is estimated and then averaged over all group members to provide ZComp
+GroupEdge       13  -          -                       Fraction of the group within the survey volume, as estimated from IterCen and Rad100
+VelDisp         14  km/s       phys.veloc              Group velocity dispersion, corrected for the total group velocity dispersion error (VelErr); set to zero if VelErr>VelDispRaw 
+VelDispRaw      15  km/s       phys.veloc              Raw group velocity dispersion
+VelErr          16  km/s       phys.veloc              Total group velocity error
+TotRmag         17  mag        phys.magAbs             r-band absolute magnitude of the group, obtained by adding up the r-band luminosities of its members
+TotFluxProxy    18  -          -                       Proxy for group total r-band luminosity down to M_r - 5 log_10 h = -14 in solar luminosities. It is based on the total observed r-band flux and the fraction of light (as estimated from the global galaxy LF) observable at the group redshift. Value listed corresponds to B=1 in Eq. 22 of Robotham et al. (2011)
+MassProxy       19  -          -                       Proxy for dynamical group mass estimated via M \propto Rad50 * VelDisp^2 . Value listed corresponds to A=1 in Eq. 18 of Robotham et al. (2011), i.e. calibrated mass is given by A*M, with A the scaling factor described in section 4.3 of Robotham et al. (2011)
+BCGCATAID       20  -          meta.id                 GAMA ID of BCG
+BCGRA           21  deg        pos.eq.ra               RA of BCG (J2000)
+BCGDEC          22  deg        pos.eq.dec              Dec of BCG (J2000)
+Rgap            23  mag        phot.mag                Apparent r-band magnitude gap between BCG and second brightest group member
+CenRA           24  deg        pos.eq.ra               RA of group for a r-band luminosity weighted CoM of the system (in degrees J2000)
+CenDEC          25  deg        pos.eq.dec              Dec of group for a r-band luminosity weighted CoM of the system (in degrees J2000)
+RadKurt         26  -          -                       Unbiased kurtosis of the radial distribution of galaxies based on the projected distance to IterCen
+AxAng           27  deg        pos.posAng              Angle of the group major axis on the sky (N -> E = 0 -> 90) using the Carter & Metcalfe (1980) algorithm (0<=AxAng<=180, requires 3 or more members, so -999 otherwise)
+AxRat           28  -          phys.size.axisRatio     Axial ratio of the minor and major axes of the group using the Carter & Metcalfe (1980) algorithm (0<=AxRat<=1, requires 3 or more members, so -999 otherwise)
+SymKS           29  -          -                       KS test of the uniformity of groups once corrected for the axial-ratio; an elliptical group has an average p-value of 0.5 (requires 3 or more members, so -999 otherwise)
+VelSkew         30  -          -                       Unbiased skew of the galaxy velocities (requires 3 or more members, so -999 otherwise)
+VelKurt         31  -          -                       Unbiased kurtosis of the galaxy velocities (requires 4 or more members, so -999 otherwise)
+Modality        32  -          -                       Modality of the system: (1+VelSkew^2)/(3+VelKurt^2); this will be 1/3 for a normal distribution and 0.555 for a uniform
+LinkTot         33  -          -                       Total number of FoF links in the system
+LinkStrenProj   34  -          -                       Link strength in projection, 1 minus the average projected FoF link relative to the separation allowed by the FoF algorithm (0<=LinkStrenProj<=1), i.e. larger values mean a stronger link, see Sect 4.6 of Robotham (2011)
+LinkStrenRad    35  -          -                       Link strength radially, 1 minus the average radial FoF link relative to the separation allowed by the FoF algorithm (0<=LinkStrenZ<=1), i.e. larger values mean a stronger link, see Sect 4.6 of Robotham (2011)
+LinkStrenComb   36  -          -                       Link strength combined, the average of LinkStrenProj*LinkStrenZ for all the links in the group (0<=LinkStrenComb<=1), i.e. larger values mean a stronger link, see Sect 4.6 of Robotham (2011)
+MassA           37  Msun/h     phys.mass               Mass proxy times the global A factor required to get a median unbaised halo mass estimate (A=10.0, see Robotham et al 2011 section 4.3 for details)
+MassAfunc       38  Msun/h     phys.mass               Mass proxy times the functional A factor which is a function of Nfof and IterCenZ (see Robotham et al 2011 section 4.3 for details)
+LumB            39  Lsun/h     phys.luminosity         TotFluxProxy times the global B factor required to get a median unbaised r-band luminosity estimate (B=1.04, see Robotham et al 2011 section 4.4 for details)
+LumBfunc        40  Lsun/h     phys.luminosity         TotFluxProxy times the functional B factor which is a function of Nfof and IterCenZ (see Robotham et al 2011 section 4.4 for details)
+d3vol           41  (Mpc/h)^3  -                       3D convex hull volume in comoving units (only for Nfof>=4, -999 otherwise)
+d3area          42  (Mpc/h)^2  phys.area               Surface area of the 3D convex hull in comoving units (only for Nfof>=4, -999 otherwise)
+d2radec         43  (Mpc/h)^2  phys.area               Projected area of the hull in the ra dec plane in comoving units (only for Nfof>=3, -999 otherwise)
+d2raz           44  (Mpc/h)^2  phys.area               Projected area of the hull in the ra redshift plane in comoving units (only for Nfof>=3, -999 otherwise)
+d2decz          45  (Mpc/h)^2  phys.area               Projected area of the hull in the dec rdshift plane in comoving Mpc units (only for Nfof>=3, -999 otherwise)
+distortcirc     46  -          -                       Reflects how non-circular the group projection appears to be, see notes, (only for Nfof>=3, -999 otherwise)
+distortellip    47  -          -                       Reflects how non-elliptical the group appears to be, see notes file, (only for Nfof>=4, -999 otherwise)
+distortsph      48  -          -                       Reflects how non-spherical the system appears to be, see notes file, (only for Nfof>=4, -999 otherwise)
+URL_IMG         49  -          meta.ref.url;meta.file  URL of the group's image
