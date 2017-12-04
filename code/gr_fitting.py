@@ -88,6 +88,7 @@ def sdss_reduction():
 def gama_reduction():
 
 
+    gama = pf.open("data/KiDSxGAMAequ+G23.fits")[1].data
     data = gama
         
     data = data[data['IMAFLAGS_ISO_U']&01010111==0]
@@ -132,12 +133,12 @@ def catalog_combinator():
 
 def catalog_slicer(zmin, zmax, component):
 
-    
+     
     combined_cat = catalog_combinator()
+    z = combined_cat[11,:]
     mask = (z>zmin) & (z<zmax)
     reduced_cat = combined_cat[:,mask]
     
-    x = reduced_cat[3,:] #mi the reference magnitude
 
     color = reduced_cat[8:11,:]
     color_err = np.zeros_like(color)
@@ -145,6 +146,7 @@ def catalog_slicer(zmin, zmax, component):
     color_err[1,:] = reduced_cat[5,:]**2. + reduced_cat[6,:]**2.
     color_err[2,:] = reduced_cat[6,:]**2. + reduced_cat[7,:]**2.
 
+    x = reduced_cat[3,:] #mi the reference magnitude
     y = color[component, :]
     yerr = color[component , :]
 
@@ -264,7 +266,7 @@ def lnprob_fg(p):
 
 def lnprior(p):
     
-    bounds = [(-0.2, 0.2), (1.0,2.0), (-20.0, -2.0), (0, 1), (0.0, 2.0), (-7.0,5.2)]
+    bounds = [(-0.1, 0.1), (1.0,2.0), (-20.0, -2.0), (0, 1), (0.0, 2.0), (-7.0,5.2)]
     # We'll just put reasonable uniform priors on all the parameters.
     if not all(b[0] < v < b[1] for v, b in zip(p, bounds)):
         return -np.inf
@@ -329,7 +331,7 @@ def mcmc(args):
 
     ndim, nwalkers = 6, 32
     #bounds = [(-0.2, 0.2), (0.2,1.0), (-20.0, -1.5), (0, 1), (0.0, 1.0), (-8.0,1.5)]
-    bounds = [(-0.2, 0.2), (1.0,2.0), (-20.0, -2.0), (0, 1), (0.0, 2.0), (-7.0,5.2)]
+    bounds = [(-0.1, 0.1), (1.0,2.0), (-20.0, -2.0), (0, 1), (0.0, 2.0), (-7.0,5.2)]
     p0 = np.array([0.0, 1.2, np.log(0.01) , 0.7, 1.0, np.log(2.0)])
     #p0 = np.array([0.0, 0.5, np.log(0.01) , 0.7, 0.4, np.log(0.16)])
     p0 = [p0 + 1e-5 * np.random.randn(ndim) for k in range(nwalkers)]
@@ -354,7 +356,7 @@ def mcmc(args):
         #axes[i].set_ylabel(labels[i], fontsize=25)
     axes[-1].set_xlabel("Step Number", fontsize=25)
     fig.tight_layout(h_pad=0.0)
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"burn_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"burn_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
 
@@ -386,7 +388,7 @@ def mcmc(args):
         #axes[i].set_ylabel(labels[i], fontsize=25)
     axes[-1].set_xlabel("Step Number", fontsize=25)
     fig.tight_layout(h_pad=0.0)
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"chain_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"chain_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
     
@@ -435,7 +437,7 @@ def mcmc(args):
     plt.xlabel(r'$m_{i}$')
      
     #fig.tight_layout()
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"color_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"color_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
 
@@ -517,7 +519,7 @@ def mcmc_fg(args):
         #axes[i].set_ylabel(labels[i], fontsize=25)
     axes[-1].set_xlabel("Step Number", fontsize=25)
     fig.tight_layout(h_pad=0.0)
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"burn_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"burn_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
 
@@ -549,7 +551,7 @@ def mcmc_fg(args):
         #axes[i].set_ylabel(labels[i], fontsize=25)
     axes[-1].set_xlabel("Step Number", fontsize=25)
     fig.tight_layout(h_pad=0.0)
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"chain_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"chain_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
     
@@ -602,7 +604,8 @@ def mcmc_fg(args):
     plt.xlabel(r'$m_{i}$')
      
     #fig.tight_layout()
-    fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"color_iter"+str(iteration)+".png"
+    ##fig_file = "/home/vakili/public_html/files/redsequence_gr/"+str(zmin)+"_z_"+str(zmax)+"color_iter"+str(iteration)+".png"
+    fig_file = "/home/vakili/public_html/files/kidsxsdss_gama/gr/"+str(zmin)+"_z_"+str(zmax)+"color_iter"+str(iteration)+".png"
     plt.savefig(fig_file)
     plt.close()
 
@@ -612,7 +615,7 @@ if __name__ == '__main__':
 
    Niter = 5 #number of iterations
    z_init = 0.2
-   Nthreads = 10
+   Nthreads = 1
 
    import multiprocessing
    from multiprocessing import Pool
@@ -624,7 +627,7 @@ if __name__ == '__main__':
 
        zmin = z_init + i*0.02
        zmax = zmin + 0.02
-       x, y, yerr = test(zmin , zmax , 1)
+       x, y, yerr = catalog_slicer(zmin , zmax , 1)
        
        ##filename = "results3/gr_result_z_"+str(zmin)+"_"+str(zmax)+".txt"
        ##pmem = np.loadtxt(filename)[12:]
