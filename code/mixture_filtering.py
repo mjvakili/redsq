@@ -143,17 +143,23 @@ def catalog_slicer(zmin, zmax, component):
     mask = (z>zmin) & (z<zmax)
     reduced_cat = combined_cat[:,mask]
     
-
     color = reduced_cat[8:11,:]
     color_err = np.zeros_like(color)
-    color_err[0,:] = reduced_cat[4,:]**2. + reduced_cat[5,:]**2.
-    color_err[1,:] = reduced_cat[5,:]**2. + reduced_cat[6,:]**2.
-    color_err[2,:] = reduced_cat[6,:]**2. + reduced_cat[7,:]**2.
+    
+    color_err = np.zeros((3,3,color.shape[1]))
+
+    color_err[0,0,:] = reduced_cat[4,:]**2. + reduced_cat[5,:]**2.
+    color_err[1,1,:] = reduced_cat[5,:]**2. + reduced_cat[6,:]**2.
+    color_err[2,2,:] = reduced_cat[6,:]**2. + reduced_cat[7,:]**2.
+    color_err[0,1,:] = -1.* reduced_cat[5,:]**2.
+    color_err[1,0,:] = -1.* reduced_cat[5,:]**2.
+    color_err[1,2,:] = -1.* reduced_cat[6,:]**2.
+    color_err[2,1,:] = -1.* reduced_cat[6,:]**2.
 
     x = reduced_cat[3,:] #mi the reference magnitude
     xerr = reduced_cat[7,:] #ierr
-    y = color[component, :]  #u-g , g-r , r-i
-    yerr = color_err[component , :] #corresponding errors
+    ##y = color[component, :]  #u-g , g-r , r-i
+    ##yerr = color_err[component , component, :] #corresponding errors
 
     return x, xerr, color,  color_err
 
@@ -166,9 +172,9 @@ def mixture_fitting(zmin, zmax, component):
     Y_xd = np.vstack([x,color[component,:]]).T
     Yerr_xd = np.zeros((Y_xd.shape[0] , 2 , 2))
     Yerr_xd[:,0,0] = xerr
-    Yerr_xd[:,1,1] = color_err[component,:]
+    Yerr_xd[:,1,1] = color_err[component,component,:]
     
-    #fitting GMM to (i , color)
+    #fitting GMM to (i , color(component))
     clf = XDGMM(2, n_iter=400)
     clf.fit(Y_xd, Yerr_xd)
     
@@ -183,17 +189,48 @@ def mixture_fitting(zmin, zmax, component):
     chi = np.sum(dY_red.T * VdY , axis = 0)
     mask = chi<2
 
+    # at this point we don't care which color component was used for masking
+    # we keep the masked galaxies (chisq<2) and fit a linear line to the i-colors.
+    # this step is agnostic about the color component used for masking 
+    # note that we ahve used mu_red[0,0] (the first component of the center of the red galaxies) as m_ref
+
     nll = lambda *args: -lnlike(*args)
-    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], Y[mask,1], Yerr[mask,1,1]**.5,mu_red[0,0]))
-    m_ml, b_ml, lnf_ml = result["x"]
-      
-    return m_ml, b_ml, lnf_ml
+    
+    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[0,mask], color_err[0,0,mask]**.5 ,mu_red[0,0]))
+    m_ug, b_ug, lnf_ug = result["x"]
+
+    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[1,mask], color_err[1,1,mask]**.5 ,mu_red[0,0]))
+    m_gr, b_gr, lnf_gr = result["x"]
+
+    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[2,mask], color_err[2,2,mask]**.5 ,mu_red[0,0]))
+    m_ri, b_ri, lnf_ri = result["x"]
+
+    # now that we have the slope, intercept of lines, we need o find scatter. Note that the scatter we have found from the line fitting 
+    # is the scatter after marginalizing over other color components so we are not particularly interested in that!
+
+    #in order to find the intrinsic red-sequence scatter, we fit XD model to the ensemble of masked (red) galaxies in 
+    #the three dimensional color space. we also use each  galaxy's 3x3 observed color uncertainties.
+
+
+    #fitting GMM to three-dimensional color
+    clf = XDGMM(1, n_iter=400)
+    
+    Y_xd = np.vstack([color[0,mask], color[1,mask], color[2,mask]]).T
+    Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
+    for i in xrange(3):
+        for j in xrange(3):
+            Yerr_xd[:,i,j] = color_err[i,j,maks]
+    clf.fit(Y_xd, Yerr_xd)
+    var_int = clf.V[0] #intrinsic variance
+
+    return m_ug, b_ug, m_gr, b_gr, m_ri, b_ri, var_int
 
 def lnlike(theta, x, y, yerr ,xref):
+    
     m, b, lnf = theta
     model = m * (x-xref) + b
-    #inv_sigma2 = 1.0/(yerr**2 + model**2*np.exp(2*lnf))
     inv_sigma2 = 1.0/(yerr**2 + np.exp(2*lnf))
+
     return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
 
 if __name__ == '__main__':
