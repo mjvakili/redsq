@@ -182,12 +182,15 @@ def mixture_fitting(zmin, zmax, component):
     red_index = np.where(clf.mu[:,1] == clf.mu[:,1].max())[0] 
     mu_red , V_red= clf.mu[red_index] , clf.V[red_index][0]
    
-    # computing the redsq membership probability and keeping points with chisq < 2
-    dY_red = Y - mu_red
-    V_red_inv = np.linalg.inv(V_red)
-    VdY = np.tensordot(V_red_inv, dY_red , axes=(1,1))
-    chi = np.sum(dY_red.T * VdY , axis = 0)
-    mask = chi<2
+    ### computing the redsq membership probability and keeping points with chisq < 2
+    ##dY_red = Y - mu_red
+    ##V_red_inv = np.linalg.inv(V_red)
+    ##VdY = np.tensordot(V_red_inv, dY_red , axes=(1,1))
+    ##chi = np.sum(dY_red.T * VdY , axis = 0)
+    
+    red_line = mu_red[0,1] + V_red[0,1]*(Y[:,0] - mu_red[0,0])/V_red[0,0]
+    red_scatter = V_red[1,1] - V_red[0,1]**2./V_red[0,0]
+    mask = (Y[:,1]>red_line - red_scatter**.5)&(Y[:,1]<red_line + red_scatter**.5)
 
     # at this point we don't care which color component was used for masking
     # we keep the masked galaxies (chisq<2) and fit a linear line to the i-colors.
@@ -219,7 +222,7 @@ def mixture_fitting(zmin, zmax, component):
     Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
     for i in xrange(3):
         for j in xrange(3):
-            Yerr_xd[:,i,j] = color_err[i,j,maks]
+            Yerr_xd[:,i,j] = color_err[i,j,mask]
     clf.fit(Y_xd, Yerr_xd)
     var_int = clf.V[0] #intrinsic variance
 
