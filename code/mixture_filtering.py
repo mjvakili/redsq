@@ -156,7 +156,7 @@ def catalog_slicer(zmin, zmax, component):
     color_err[1,2,:] = -1.* reduced_cat[6,:]**2.
     color_err[2,1,:] = -1.* reduced_cat[6,:]**2.
 
-    x = reduced_cat[3,:] #mi the reference magnitude
+    x = reduced_cat[3,:]    #mi the reference magnitude
     xerr = reduced_cat[7,:] #ierr
     ##y = color[component, :]  #u-g , g-r , r-i
     ##yerr = color_err[component , component, :] #corresponding errors
@@ -173,29 +173,37 @@ def mixture_fitting(zmin, zmax, component):
     Yerr_xd = np.zeros((Y_xd.shape[0] , 2 , 2))
     Yerr_xd[:,0,0] = xerr
     Yerr_xd[:,1,1] = color_err[component,component,:]
-    
-    #fitting GMM to (i , color(component))
-    clf = XDGMM(2, n_iter=400)
-    clf.fit(Y_xd, Yerr_xd)
-    
+    #fitting a two component GMM to (mi , color(component) space in the redshift bin)
+    clf_in = XDGMM(2, n_iter=400)
+    clf_in.fit(Y_xd, Yerr_xd)
     # mixture component associated with the red population
-    red_index = np.where(clf.mu[:,1] == clf.mu[:,1].max())[0] 
-    mu_red , V_red= clf.mu[red_index] , clf.V[red_index][0]
-   
-    ### computing the redsq membership probability and keeping points with chisq < 2
-    ##dY_red = Y - mu_red
-    ##V_red_inv = np.linalg.inv(V_red)
-    ##VdY = np.tensordot(V_red_inv, dY_red , axes=(1,1))
-    ##chi = np.sum(dY_red.T * VdY , axis = 0)
-    
+    red_index = np.where(clf_in.mu[:,1] == clf_in.mu[:,1].max())[0] 
+    mu_red , V_red= clf_in.mu[red_index] , clf_in.V[red_index][0]
     red_line = mu_red[0,1] + V_red[0,1]*(Y[:,0] - mu_red[0,0])/V_red[0,0]
     red_scatter = V_red[1,1] - V_red[0,1]**2./V_red[0,0]
-    mask = (Y[:,1]>red_line - red_scatter**.5)&(Y[:,1]<red_line + red_scatter**.5)
-
+    chi_red = (Y_xd[:,1] - red_line)**2. / (red_scatter + Yerr_xd[:,1,1])
+    mask = chi_red < 2
+    ##UPDATE : I have converged on using g-r for masking purposes!!
+    
     # at this point we don't care which color component was used for masking
     # we keep the masked galaxies (chisq<2) and fit a linear line to the i-colors.
     # this step is agnostic about the color component used for masking 
     # note that we ahve used mu_red[0,0] (the first component of the center of the red galaxies) as m_ref
+    x_xd = x[:,mask]
+    xerr_xd = x[:,mask]
+    Y_xd = np.vstack([color[0,mask], color[1,mask], color[2,mask]]).T
+    Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
+    for i in xrange(3):
+        for j in xrange(3):
+            Yerr_xd[:,i,j] = color_err[i,j,mask]
+    # fitting a two component GMM to the remainder of galaxies in the three dimensional colorspace
+    clf_fi = XDGMM(2, n_iter=400)
+    clf_fi.fit(Y_xd, Yerr_xd)
+    pure_index = np.where(clf.mu[:,1] == clf.mu[:,1].max())
+    mu_pure , V_pure = clf.mu[pure_index] , clf.V[pure_index][0]
+    P = np.linalg.inv(V_pure + Yerr_xd)
+    chi = np.einsum('mn,mn->m', np.einsum('ijk,ik->ij', P, dY_pure) , dY_pure)
+    pure_mask = chi<2
 
     nll = lambda *args: -lnlike(*args)
     
@@ -256,10 +264,6 @@ if __name__ == '__main__':
        zmin = z_init + i*0.02
        zmax = zmin + 0.02
        x, y, yerr = catalog_slicer(zmin , zmax , 1)
-       
-       ##filename = "results3/gr_result_z_"+str(zmin)+"_"+str(zmax)+".txt"
-       ##pmem = np.loadtxt(filename)[12:]
-       ##x , y , yerr = x[pmem>0.8] , y[pmem>0.8] , yerr[pmem>0.8]
        
        arglist[i] = (zmin, zmax, 1, x, y, yerr)  
    result = list(mapfn(mcmc, [ars for ars in arglist]))
