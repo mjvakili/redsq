@@ -17,7 +17,10 @@ palette = itertools.cycle(sns.color_palette())
 
 def mstar(z):
     
+
     return 22.44+3.36*np.log(z)+0.273*np.log(z)**2-0.0618*np.log(z)**3-0.0227*np.log(z)**4
+
+       
 
 def mag_function(zs, znorm,zf,Z):
     model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_"+str(Z)+"_chab.model")
@@ -45,7 +48,7 @@ def color_function(zs, znorm,zf,Z):
     mg = model.get_apparent_mags(zf=zf , filters = "g" , zs= zs)
     mr = model.get_apparent_mags(zf=zf , filters = "r" , zs= zs)
     mi = model.get_apparent_mags(zf=zf , filters = "i" , zs= zs)
-    return mu-mg, mg-mr, mr-mi
+    return np.vstack([mu-mg, mg-mr, mr-mi, mi])
 
 def gama_reduction():
     
@@ -133,6 +136,81 @@ def sdss_reduction():
     
     return col
 
+def red_mock():
+
+    from scipy.interpolate import spline
+
+    mock_z = np.linspace(0.05,0.8,len(col[-3,:]))
+    mock_color = spline(zs, mock_median.T, mock_z)
+    mock_colorerr = spline(zs, mock_std.T, mock_z)
+    mock_dispersion = np.random.normal(loc=0.0, scale=mock_colorerr, size=None)
+    mock_color += mock_dispersion
+
+    fig , ax = plt.subplots(nrows=4,ncols=1 , figsize=(5,15))
+
+    for ind in range(4):
+  
+      ax[ind].scatter(mock_z , mock_color[:,ind] , s = 0.01 , color = next(palette))
+      ax[ind].set_xlim(0,0.8)
+      ax[ind].set_xlabel(r"$z$" , fontsize = 15)
+
+    ax[0].set_ylim(0,4)
+    ax[1].set_ylim(0,2.5)
+    ax[2].set_ylim(0,1.5)
+    ax[3].set_ylim(14,24)
+    ax[0].set_ylabel(r"$u-g$" , fontsize = 15)
+    ax[1].set_ylabel(r"$g-r$" , fontsize = 15)
+    ax[2].set_ylabel(r"$r-i$" , fontsize = 15)
+    ax[3].set_ylabel(r"$m_i$" , fontsize = 15)
+    plt.legend(loc = 'best')
+    plt.savefig(util.fig_dir()+'bc03_mock_uniformz.png') 
+
+    mock_z = col[-3,:]
+    mock_color = spline(zs, mock_median.T, mock_z)
+    mock_colorerr = spline(zs, mock_std.T, mock_z)
+    mock_dispersion = np.random.normal(loc=0.0, scale=mock_colorerr, size=None)
+    mock_color += mock_dispersion
+
+    fig , ax = plt.subplots(nrows=4,ncols=1 , figsize=(5,15))
+
+    for ind in range(4):
+  
+      ax[ind].scatter(mock_z , mock_color[:,ind] , s = 0.01 , color = next(palette))
+      ax[ind].set_xlim(0,0.8)
+      ax[ind].set_xlabel(r"$z$" , fontsize = 15)
+
+    ax[0].set_ylim(0,4)
+    ax[1].set_ylim(0,2.5)
+    ax[2].set_ylim(0,1.5)
+    ax[3].set_ylim(14,24)
+    ax[0].set_ylabel(r"$u-g$" , fontsize = 15)
+    ax[1].set_ylabel(r"$g-r$" , fontsize = 15)
+    ax[2].set_ylabel(r"$r-i$" , fontsize = 15)
+    ax[3].set_ylabel(r"$m_i$" , fontsize = 15)
+    plt.legend(loc = 'best')
+    plt.savefig(util.fig_dir()+'bc03_mock_specz.png')           
+    
+    z_init = 0.1 
+    for iz in range(35):
+      zmask = (mock_z>z_init+iz*0.02)&(mock_z<z_init+(iz+1)*0.02)
+      fig , ax = plt.subplots(nrows=3,ncols=1 , figsize=(5,15))
+      for ind in range(3):
+
+        ax[ind].scatter(mock_color[zmask,-1] , mock_color[zmask,ind] , s = 1 , color = next(palette), label = str(z_init+iz*0.02)+"<z<"+str(z_init+(iz+1)*0.02))
+        #ax[ind].set_xlim([15,24])
+        ax[ind].set_xlabel(r"$m_i$" , fontsize = 15)
+      ax[0].set_ylim(0,4)
+      ax[1].set_ylim(0,2.5)
+      ax[2].set_ylim(0,1.5)
+      ax[0].set_ylabel(r"$u-g$" , fontsize = 15)
+      ax[1].set_ylabel(r"$g-r$" , fontsize = 15)
+      ax[2].set_ylabel(r"$r-i$" , fontsize = 15)
+      
+
+      plt.legend(loc = 'best')
+      plt.savefig(util.fig_dir()+'bc03_mock_cm'+str(iz)+'.png')     
+    return None     
+
 if __name__ == '__main__':
 
   gama = pf.open("data/KiDSxGAMAequ+G23.fits")[1].data
@@ -140,21 +218,37 @@ if __name__ == '__main__':
   mask = np.where(np.in1d(sdss['ID'] , gama['ID'])==False)
   sdss = sdss[mask]
   col = np.hstack([gama_reduction() , sdss_reduction()])
+  zs = np.linspace(0.05,0.8,100)
+  mock1 = color_function(zs,0.25,1.5,0.008)
+  mock2 = color_function(zs,0.25,1.5,0.02)  
+  mock3 = color_function(zs,0.25,3,0.008)
+  mock4 = color_function(zs,0.25,3,0.02)
+  mock_median = np.zeros_like(mock1)
+  mock_std = np.zeros_like(mock1)
+
+  for ind in range(4):
+
+      mock_median[ind] = np.median(np.vstack([mock1[ind], mock2[ind], mock3[ind], mock4[ind]]),axis=0)
+      mock_std[ind] = np.std(np.vstack([mock1[ind], mock2[ind], mock3[ind], mock4[ind]]),axis=0)
+  
   fig , ax = plt.subplots(nrows=3,ncols=1 , figsize=(5,15))
-  zs = np.linspace(0,0.8,100)
+
   for ind in range(3):
   
-  
     ax[ind].scatter(col[11,:] , col[ind+8,:] , s = 0.001 , color = next(palette))
-    ax[ind].plot(zs , color_function(zs,0.25,1.5,0.008)[ind] , label = "zf=1.5 , Z=0.008")
-    ax[ind].plot(zs , color_function(zs,0.25,1.5,0.02)[ind] , label = "zf=1.5 , Z=0.02")
-
-    ax[ind].plot(zs , color_function(zs,0.25,3,0.008)[ind] , label = "zf=3 , Z=0.008")
-    ax[ind].plot(zs , color_function(zs,0.25,3,0.02)[ind] , label = "zf=3 , Z=0.02")
+    ax[ind].plot(zs , mock1[ind] , label = "zf=1.5 , Z=0.008")
+    ax[ind].plot(zs , mock2[ind] , label = "zf=1.5 , Z=0.02")
+    ax[ind].plot(zs , mock3[ind] , label = "zf=3 , Z=0.008")
+    ax[ind].plot(zs , mock4[ind] , label = "zf=3 , Z=0.02")
     ax[ind].set_xlim(0,0.8)
-  
+    ax[ind].set_xlabel(r"$z$" , fontsize = 15)
   ax[0].set_ylim(0,4)
   ax[1].set_ylim(0,2.5)
   ax[2].set_ylim(0,1.5)
+  ax[0].set_ylabel(r"$u-g$" , fontsize = 15)
+  ax[1].set_ylabel(r"$g-r$" , fontsize = 15)
+  ax[2].set_ylabel(r"$r-i$" , fontsize = 15)
   plt.legend(loc = 'best')
   plt.savefig(util.fig_dir()+'bc03_kids.png')  
+
+  red_mock()
