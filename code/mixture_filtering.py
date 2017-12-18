@@ -156,18 +156,18 @@ def catalog_slicer(zmin, zmax, component):
     color_err[1,2,:] = -1.* reduced_cat[6,:]**2.
     color_err[2,1,:] = -1.* reduced_cat[6,:]**2.
 
+    zspec = reduced_cat[11,:]
     x = reduced_cat[3,:]    #mi the reference magnitude
     xerr = reduced_cat[7,:] #ierr
-    ##y = color[component, :]  #u-g , g-r , r-i
-    ##yerr = color_err[component , component, :] #corresponding errors
+    
+    return zspec, x, xerr, color,  color_err
 
-    return x, xerr, color,  color_err
-
-def mixture_fitting(zmin, zmax, component):
+def mixture_fitting(args):
     '''
     component = 0 : u-g, 1: g-r, 2: r-i
     '''
-    x, xerr, color, color_err = catalog_slicer(zmin, zmax, component)
+    zmin, zmax, component = args
+    zspec, x, xerr, color, color_err = catalog_slicer(zmin, zmax, component)
     
     Y_xd = np.vstack([x,color[component,:]]).T
     Yerr_xd = np.zeros((Y_xd.shape[0] , 2 , 2))
@@ -179,18 +179,18 @@ def mixture_fitting(zmin, zmax, component):
     # mixture component associated with the red population
     red_index = np.where(clf_in.mu[:,1] == clf_in.mu[:,1].max())[0] 
     mu_red , V_red= clf_in.mu[red_index] , clf_in.V[red_index][0]
-    red_line = mu_red[0,1] + V_red[0,1]*(Y[:,0] - mu_red[0,0])/V_red[0,0]
+    red_line = mu_red[0,1] + V_red[0,1]*(Y_xd[:,0] - mu_red[0,0])/V_red[0,0]
     red_scatter = V_red[1,1] - V_red[0,1]**2./V_red[0,0]
     chi_red = (Y_xd[:,1] - red_line)**2. / (red_scatter + Yerr_xd[:,1,1])
     mask = chi_red < 2
     ##UPDATE : I have converged on using g-r for masking purposes!!
-    
     # at this point we don't care which color component was used for masking
     # we keep the masked galaxies (chisq<2) and fit a linear line to the i-colors.
     # this step is agnostic about the color component used for masking 
     # note that we ahve used mu_red[0,0] (the first component of the center of the red galaxies) as m_ref
-    x_xd = x[:,mask]
-    xerr_xd = x[:,mask]
+    x_xd = x[mask]
+    xerr_xd = x[mask]
+
     Y_xd = np.vstack([color[0,mask], color[1,mask], color[2,mask]]).T
     Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
     for i in xrange(3):
@@ -199,22 +199,34 @@ def mixture_fitting(zmin, zmax, component):
     # fitting a two component GMM to the remainder of galaxies in the three dimensional colorspace
     clf_fi = XDGMM(2, n_iter=400)
     clf_fi.fit(Y_xd, Yerr_xd)
-    pure_index = np.where(clf.mu[:,1] == clf.mu[:,1].max())
-    mu_pure , V_pure = clf.mu[pure_index] , clf.V[pure_index][0]
+    pure_index = np.where(clf_fi.mu[:,1] == clf_fi.mu[:,1].max())
+    mu_pure , V_pure = clf_fi.mu[pure_index] , clf_fi.V[pure_index][0]
+    dY_pure = Y_xd - mu_pure
     P = np.linalg.inv(V_pure + Yerr_xd)
     chi = np.einsum('mn,mn->m', np.einsum('ijk,ik->ij', P, dY_pure) , dY_pure)
     pure_mask = chi<2
 
-    nll = lambda *args: -lnlike(*args)
+    zred = zspec[mask][pure_mask]
+    zred = zred.reshape(zred.shape[0],1)
+    ired = x_xd[pure_mask]
+    ired = ired.reshape(ired.shape[0],1)
+    eired = xerr_xd[pure_mask]
+    eired = ired.reshape(eired.shape[0],1)
+    cred = Y_xd[pure_mask]
+    ecred = Yerr_xd[pure_mask].reshape(cred.shape[0],cred.shape[1]*cred.shape[1])
     
-    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[0,mask], color_err[0,0,mask]**.5 ,mu_red[0,0]))
-    m_ug, b_ug, lnf_ug = result["x"]
+    return np.hstack([zred,ired,eired,cred,ecred])
+    
+    #nll = lambda *args: -lnlike(*args)
+    
+    #result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[0,mask], color_err[0,0,mask]**.5 ,mu_red[0,0]))
+    #m_ug, b_ug, lnf_ug = result["x"]
 
-    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[1,mask], color_err[1,1,mask]**.5 ,mu_red[0,0]))
-    m_gr, b_gr, lnf_gr = result["x"]
+    #result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[1,mask], color_err[1,1,mask]**.5 ,mu_red[0,0]))
+    #m_gr, b_gr, lnf_gr = result["x"]
 
-    result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[2,mask], color_err[2,2,mask]**.5 ,mu_red[0,0]))
-    m_ri, b_ri, lnf_ri = result["x"]
+    #result = op.minimize(nll, [0.0, mu_red[0,1], np.log(V_red[1,1]**.5)], args=(Y[mask,0], color[2,mask], color_err[2,2,mask]**.5 ,mu_red[0,0]))
+    #m_ri, b_ri, lnf_ri = result["x"]
 
     # now that we have the slope, intercept of lines, we need o find scatter. Note that the scatter we have found from the line fitting 
     # is the scatter after marginalizing over other color components so we are not particularly interested in that!
@@ -224,17 +236,17 @@ def mixture_fitting(zmin, zmax, component):
 
 
     #fitting GMM to three-dimensional color
-    clf = XDGMM(1, n_iter=400)
+    #clf = XDGMM(1, n_iter=400)
     
-    Y_xd = np.vstack([color[0,mask], color[1,mask], color[2,mask]]).T
-    Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
-    for i in xrange(3):
-        for j in xrange(3):
-            Yerr_xd[:,i,j] = color_err[i,j,mask]
-    clf.fit(Y_xd, Yerr_xd)
-    var_int = clf.V[0] #intrinsic variance
+    #Y_xd = np.vstack([color[0,mask], color[1,mask], color[2,mask]]).T
+    #Yerr_xd = np.zeros((Y_xd.shape[0] , 3 , 3))
+    #for i in xrange(3):
+    #    for j in xrange(3):
+    #        Yerr_xd[:,i,j] = color_err[i,j,mask]
+    #clf.fit(Y_xd, Yerr_xd)
+    #var_int = clf.V[0] #intrinsic variance
 
-    return m_ug, b_ug, m_gr, b_gr, m_ri, b_ri, var_int
+    #return m_ug, b_ug, m_gr, b_gr, m_ri, b_ri, var_int
 
 def lnlike(theta, x, y, yerr ,xref):
     
@@ -249,33 +261,31 @@ if __name__ == '__main__':
    
    combined_cat = catalog_combinator()
 
-   Niter = 5 
-   z_init = 0.1
-   Nthreads = 1
+   
+   z_init , z_fin = 0.1 , 0.8
+   Nthreads = 60
+   znods = np.linspace(z_init, z_fin, Nthreads+1)
 
    import multiprocessing
    from multiprocessing import Pool
+   import h5py
    
    pool = Pool(Nthreads)
    mapfn = pool.map
    arglist = [None] * Nthreads
+  
    for i in range(Nthreads):
 
-       zmin = z_init + i*0.02
-       zmax = zmin + 0.02
-       x, y, yerr = catalog_slicer(zmin , zmax , 1)
+       zmin , zmax = znods[i], znods[i+1]
+       arglist[i] = (zmin, zmax , 1)
        
-       arglist[i] = (zmin, zmax, 1, x, y, yerr)  
-   result = list(mapfn(mcmc, [ars for ars in arglist]))
-   for i in range(Nthreads):
-       zmin = z_init + i*0.01
-       zmax = zmin + 0.01
-       x, y, yerr = test(zmin , zmax , 2)
-       arglist[i] = (zmin, zmax , 8, x, y , yerr)  
-   result = list(mapfn(mcmc, [ars for ars in arglist]))
+   result = list(mapfn(mixture_fitting, [ars for ars in arglist]))
    
-   for t in range(Nthreads):
-       zmin = z_init + t * 0.01
-       zmax = zmin + 0.01
-       np.savetxt("results/ri_result_z_"+str(zmin)+"_"+str(zmax)+".txt" , np.array(result[t]))
+   arr = result[0]   
+   for i in range(1, Nthreads):
+       arr = np.vstack([arr, result[i]])
+   red_file = h5py.File("red_cat_sures.hdf5" , 'w')
+   red_file.create_dataset("red",(arr.shape[0], arr.shape[1]), data = np.zeros((arr.shape[0], arr.shape[1])))
+   red_file["red"][:] = arr
+   red_file.close()
    pool.close()
