@@ -215,7 +215,7 @@ def mixture_fitting(args):
     cred = Y_xd[pure_mask]
     ecred = Yerr_xd[pure_mask].reshape(cred.shape[0],cred.shape[1]*cred.shape[1])
     
-    return np.hstack([zred,ired,eired,cred,ecred])
+    return [mu_red[0,0] , np.hstack([zred,ired,eired,cred,ecred])]
     
     #nll = lambda *args: -lnlike(*args)
     
@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
    
    z_init , z_fin = 0.1 , 0.8
-   Nthreads = 60
+   Nthreads = 50
    znods = np.linspace(z_init, z_fin, Nthreads+1)
 
    import multiprocessing
@@ -281,11 +281,18 @@ if __name__ == '__main__':
        
    result = list(mapfn(mixture_fitting, [ars for ars in arglist]))
    
-   arr = result[0]   
+   arr = result[0][1]
+   mref = np.zeros((Nthreads))
+   mref[0] = result[0][0]
+
    for i in range(1, Nthreads):
-       arr = np.vstack([arr, result[i]])
-   red_file = h5py.File("red_cat_sures.hdf5" , 'w')
+
+       arr = np.vstack([arr, result[i][1]])
+       mref[i] = result[i][0]
+
+   red_file = h5py.File("red_cat_hires.hdf5" , 'w')
    red_file.create_dataset("red",(arr.shape[0], arr.shape[1]), data = np.zeros((arr.shape[0], arr.shape[1])))
+   red_file.create_dataset("mref",(Nthreads,), data = mref)
    red_file["red"][:] = arr
    red_file.close()
    pool.close()
