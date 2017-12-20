@@ -31,12 +31,16 @@ def node_init(args):
     mask = (red_sample[:,0]>zmin)&(red_sample[:,0]<zmax)
     Y = red_sample[mask,:]
     nll = lambda *args: -lnlike(*args)
-    result = op.minimize(nll, [0.01, np.median(Y[:,3]), 0.05], args=(Y[:,1], Y[:,3], Y[:,6]**.5 , xref))
+    result = op.minimize(nll, [0.01, np.median(Y[:,3]), -4], args=(Y[:,1], Y[:,3], Y[:,6]**.5 , xref))#, method = 'CG',options={'gtol': 1e-05, 'eps': 1.4901161193847656e-08})
     m_ug, b_ug, lnf_ug = result["x"]
-    result = op.minimize(nll, [0.01, np.median(Y[:,4]), 0.05], args=(Y[:,1], Y[:,4], Y[:,10]**.5 , xref))
+    #result = op.minimize(nll, [m_ug, b_ug, lnf_ug], args=(Y[:,1], Y[:,3], Y[:,6]**.5 , xref) , method = 'BFGS')
+    #m_ug, b_ug, lnf_ug = result["x"]
+    #result = op.minimize(nll, [m_ug, b_ug, lnf_ug], args=(Y[:,1], Y[:,3], Y[:,6]**.5 , xref) , method = 'Powell')
+    #m_ug, b_ug, lnf_ug = result["x"]
+    result = op.minimize(nll, [0.01, np.median(Y[:,4]), -4], args=(Y[:,1], Y[:,4], Y[:,10]**.5 , xref))
     m_gr, b_gr, lnf_gr = result["x"]
     #print [zmin , m_gr, b_gr, lnf_gr]
-    result = op.minimize(nll, [0.01, np.median(Y[:,5]), 0.05], args=(Y[:,1], Y[:,5], Y[:,14]**.5 , xref))
+    result = op.minimize(nll, [0.01, np.median(Y[:,5]), -4], args=(Y[:,1], Y[:,5], Y[:,14]**.5 , xref))
     m_ri, b_ri, lnf_ri = result["x"]
     return np.array([m_ug, m_gr, m_ri, b_ug, b_gr, b_ri, lnf_ug, lnf_gr, lnf_ri])
 
@@ -44,8 +48,9 @@ def lnlike(theta, x, y, yerr ,xref):
     
     m, b, lnf = theta
     model = m * (x-xref) + b
-    inv_sigma2 = 1.0/(yerr**2 + np.exp(2*lnf) + 1e-12)
+    inv_sigma2 = 1.0/(yerr**2 + np.exp(2*lnf))
 
+    #return -0.5*(np.sum((y-model)**2.*inv_sigma2))# - np.log(inv_sigma2)))
     return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
 
 if __name__ == '__main__':

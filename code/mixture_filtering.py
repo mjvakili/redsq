@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
    
    z_init , z_fin = 0.1 , 0.8
-   Nthreads = 50
+   Nthreads = 35
    znods = np.linspace(z_init, z_fin, Nthreads+1)
 
    import multiprocessing
@@ -290,7 +290,7 @@ if __name__ == '__main__':
        arr = np.vstack([arr, result[i][1]])
        mref[i] = result[i][0]
 
-   red_file = h5py.File("red_cat_hires.hdf5" , 'w')
+   red_file = h5py.File("red_cat.hdf5" , 'w')
    red_file.create_dataset("red",(arr.shape[0], arr.shape[1]), data = np.zeros((arr.shape[0], arr.shape[1])))
    red_file.create_dataset("mref",(Nthreads,), data = mref)
    red_file["red"][:] = arr
