@@ -24,7 +24,7 @@ import multiprocessing
 from multiprocessing import Pool
 import h5py
 
-def nod_init3d(args):
+def nod_init3d(args, method):
     
     xref , theta_init , Y= args
     
@@ -36,7 +36,13 @@ def nod_init3d(args):
     colorerrs = Y[:,6:]
     colorerrs  = colorerrs.reshape(colorerrs.shape[0], 3, 3)
 
-    result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'BFGS', options={'disp':True})
+    bnds = [(None, None) for i in len(theta_init)]
+    for i in range(3*(Nm+Nb-2), ln(theta_init)):
+        bnds[i] = (np.log(0.01), None)
+    if method == 'TNC':
+        result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'TNC', bounds = bnds, options={'disp':True})
+    if method == 'BFGS':
+        result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'BFGS', options={'disp':True})
     opt_arr = result["x"]
     print opt_arr
 
@@ -48,34 +54,18 @@ def lnlike3d(theta, z, x, y, Cerr ,xref):
     b = theta[3*(Nm-1):3*(Nm+Nb-2)].reshape(Nb-1,3) #array of b-nodes
     lnf = theta[3*(Nm+Nb-2):].reshape(Nf-1,3) #array of lnf-nodes
 
-    #print "m=" , m-m_init
-    #print "b=" , b-b_init
-    #print "c=" , lnf-lnf_init
-    
-    #np.log(-10.0)
-
     bz = CubicSpline(bnod , b)(z)
     mz = CubicSpline(mnod , m)(z)
     lnfz = CubicSpline(fnod , lnf)(z)
     xrefz = CubicSpline(xrefnod , xref)(z)
-     
-    #print "khar"
 
     Cint = np.zeros((len(z), 3, 3))
     Cint[:,0,0] = np.exp(2.* lnfz[:,0])
     Cint[:,1,1] = np.exp(2.* lnfz[:,1])
     Cint[:,2,2] = np.exp(2.* lnfz[:,2])
-
     Ctot = Cerr + Cint
-
     res = mz * (x - xrefz)[:,None] + bz - y
-    #print res
-
     chi = np.sum(np.einsum('mn,mn->n', res, np.einsum('ijk,ik->ij',np.linalg.inv(Ctot),res))) + np.sum(np.log(np.linalg.det(Ctot)))
-    #chi = np.sum(np.einsum('mn,mn->n', res, np.einsum('ijk,ik->ij',np.linalg.inv(Ctot),res)))
-    #chi = np.sum(np.log(np.linalg.det(Ctot)))
-    
-    #print chi 
     
     return -0.5*chi
 
@@ -112,6 +102,7 @@ if __name__ == '__main__':
    print "lnf=" , lnf_init
 
    theta_init = np.hstack([m_init.flatten(), b_init.flatten(), lnf_init.flatten()])
-   optimized_theta = nod_init3d([xref , theta_init, red_sample])
+   theta_init = np.loadtxt('opt_theta.txt')
+   optimized_theta = nod_init3d([xref , theta_init, red_sample] , method = 'TNC')
 
    np.savetxt("opt_theta.txt", optimized_theta)
