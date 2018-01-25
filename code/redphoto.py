@@ -12,6 +12,7 @@ import util
 import kids_gama
 import emcee
 from mixture_filtering import catalog_combinator
+import pyfits as pf
 
 def lnprior(z, zmin , zmax):
     '''
@@ -35,10 +36,7 @@ def redmapper_mstar(z):
     of redmapper galaxy cluster members at z<0.4.
     Used to normalize the Ezgal model
     '''
-    if z < 0.5 :
-       return 22.44 + 3.36*np.log(z) + 0.273*np.log(z)**2 - 0.0618*np.log(z)**3 - 0.0227*np.log(z)**4
-    elif z > 0.5 :
-       return 22.94 + 3.08*np.log(z) - 11.22*np.log(z)**2 - 27.11*np.log(z)**3 -18.02*np.log(z)**4
+    return 22.44 + 3.36*np.log(z) + 0.273*np.log(z)**2 - 0.0618*np.log(z)**3 - 0.0227*np.log(z)**4
 
 def kids_mstar(zs):
     '''
@@ -128,7 +126,7 @@ class estimate(object):
         cov_tot = cerr + np.diag([lnfz[0], lnfz[1], lnfz[2]]) 
         cmod = mz * (mag - xrefz) + bz
         dc = color - cmod
-        lnred = -0.5 * np.dot(dc.T, np.linalg.solve(cov_tot, dc)) -0.5 * np.log(np.linalg.det(cov_tot))
+        lnred = -0.5 * np.dot(dc.T, np.linalg.solve(cov_tot, dc)) - 0.5 * np.log(np.linalg.det(cov_tot))
         
         return lnred + schecter(mag,z) + lp[0]
 
@@ -146,87 +144,60 @@ class estimate(object):
         lnred = np.dot(dc.T, np.linalg.solve(cov_tot, dc))
         
         return lnred
-        
 
-def reduce_catalog():
 
-    matched_gals = catalog_combinator().T
-    colors = matched_gals[:,8:11] 
-    mag_errs = matched_gals[:,4:8]
-    color_errs = np.zeros((colors.shape[0], colors.shape[1], colors.shape[1]))
-    color_errs[:,0,0] = mag_errs[:,0]**2 + mag_errs[:,1]**2
-    color_errs[:,1,1] = mag_errs[:,1]**2 + mag_errs[:,2]**2
-    color_errs[:,2,2] = mag_errs[:,2]**2 + mag_errs[:,3]**2
-    color_errs[:,0,1] = -1. * mag_errs[:,1]**2
-    color_errs[:,1,0] = -1. * mag_errs[:,1]**2
-    color_errs[:,1,2] = -1. * mag_errs[:,2]**2
-    color_errs[:,2,1] = -1. * mag_errs[:,2]**2
-    mi = matched_gals[:,3]
-    redshift = matched_gals[:,11]
-
-    return mi, colors, color_errs, redshift
-
-def sampler(zmin, zmax , dz , nwalkers , nburn, npro):
-
-    mi , colors , color_errs, redshift = reduce_catalog() 
+def action(argz):
     
-    Ngals = mi.shape[0]
-    
+    imin , imax = argz
+
     estimator = estimate(zmin , zmax , dz, 15, 8, 6)
     lnpost = estimator.lnredsq
     lnredln = estimator.lnredline
-
-    ndim, nwalkers = 1, nwalkers
-    bounds = [(zmin , zmax)]
-    p0 = .5 * (zmax + zmin)
-    p0 = [p0 + 1e-2 * np.random.randn(ndim) for k in range(nwalkers)]
     
-    result_file = h5py.File("red_photo_v1.h5" , 'w')
-    ##result_file.create_dataset("opt", (Ngals, 4), data = np.zeros((Ngals,4)))
-    result_file.create_dataset("opt", (Ngals, 3), data = np.zeros((Ngals,3)))
-    result_file.close()
+    for i in range(imin, imax):
 
+        	def lnprob(p):
+            		return lnpost(p, mi[i], colors[i] , color_errs[i])
+       
+        	nll = lambda *args: -lnprob(*args)
+        	result = op.minimize(nll, 0.5)
+       	 	chi_red = lnredln(result["x"], mi[i], colors[i] , color_errs[i])
+		lratio = luminosity(mi[i], result["x"])
+		
+		print i
+        	print "status" , result["success"]
+        	print "estimate" , result["x"][0] 
+		print "truth" , redshift[i]
+        	print "chi_red" , chi_red 
+        	print "lratio" , lratio
+
+        	status = 0.0
+        	if result["success"] == True : status = 1.0
+       
+       	 	sample_file = h5py.File("red_photometric_sample.h5")
+        	sample_file["opt"][i] = np.array([status , result["x"] , chi_red, lratio])
+        	sample_file.close()
+     
+    return None	
+
+
+def sampler(zmin, zmax , dz , nwalkers , nburn, npro, Nthreads):
+
+    print "begin sampling"
+    import multiprocessing
+    from multiprocessing import Pool
    
-    for i in range(150000, Ngals):
-
-        def lnprob(p):
-            return lnpost(p, mi[i], colors[i] , color_errs[i])
-       
-        nll = lambda *args: -lnprob(*args)
-        result = op.minimize(nll, 0.5)
-        chi_red = lnredln(result["x"], mi[i], colors[i] , color_errs[i])
-        
-        print i
-        print "status" , result["success"]
-        print "estimate" , result["x"][0] 
-	print "truth" , redshift[i]
-        print "chi_red" , chi_red 
-       
-        status = 0.0
-        if result["success"] == True : status = 1.0
-       
-        #lratio = luminosity(mags[i],zs[i])
-
-        sample_file = h5py.File("red_photo_v1.h5")
-        #sample_file["opt"][i] = np.array([status , result["x"][0] , zs[i] , chi_red])
-        sample_file["opt"][i] = np.array([status , result["x"][0] , chi_red])
-        sample_file.close()
-
-        """
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpost, args = (mags[i] , colors[i] , color_errs[i]))
-        pos , _ , _ = sampler.run_mcmc(p0, nburn)
-        sampler.reset()
-        sampler.run_mcmc(pos, npro)
-        chain = sampler.chain
-        print np.mean(chain)
-        print np.std(chain)
-        fig_dir = util.fig_dir()
-        sns.distplot(chain.flatten(), fit=norm, kde=False)
-        plt.axvline(x = zs[i])
-        plt.xlim([0,1])
-        plt.savefig(fig_dir+str(i)+".png")
-        plt.close()
-        """
+    pool = Pool(Nthreads)
+    mapfn = pool.map
+    arglist = [None] * Nthreads
+    galnods = np.split(np.arange(30996150) , Nthreads) 
+    
+    for j in range(Nthreads):
+         arglist[j] = (galnods[j][0] , galnods[j][-1])
+         print arglist[j]
+    print arglist   
+    result2 = list(mapfn(action, [ars for ars in arglist]))
+    return None
 
 if __name__ == '__main__':
 
@@ -235,15 +206,27 @@ if __name__ == '__main__':
    import scipy.optimize as op
    import h5py
 
+   reduced_kids = h5py.File("reduced_kids.h5")
+   ID = reduced_kids['ID'][:]
+   RA = reduced_kids['RA'][:]
+   DEC = reduced_kids['DEC'][:]
+   mi = reduced_kids['mi'][:]
+   redshift = reduced_kids['redshift']
+   colors = reduced_kids['colors'][:]
+   color_errs = reduced_kids['color_errs'][:]
+   Ngals = mi.shape[0]
+   print "Ngals",  Ngals  
+    
+   result_file = h5py.File("red_photometric_sample.h5" , 'w')
+   result_file.create_dataset("opt", (Ngals, 4) , data = np.zeros((Ngals,4)))
+   result_file.close()
+
    model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_0.02_chab.model")
    model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
-   kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.2 , filters = "sloan_i")
-   model.set_normalization("sloan_i" , 0.2 , redmapper_mstar(0.2)-kcorr_sloan, vega=False, apparent=True)
+   kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.25 , filters = "sloan_i")
+   model.set_normalization("sloan_i" , 0.25 , redmapper_mstar(0.25)-kcorr_sloan, vega=False, apparent=True)
     
    zf = 3.0 #HARDCODED
    cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':0.72}
-   sampler(0.1, 0.8, 0.02, 10, 1000 , 2000)
-
-   #v2 ----> z = 0.6 match , zf = 3 match, but harcoded zf = 5, no log(var)
-   #v3 ----> z = 0.25      ,      3      ,                   3, no log(var)
-   #v4 ----> z = 0.2 match same as v3 but with variance!
+   zmin , zmax , dz = 0.1 , 0.8 , 0.02
+   sampler(0.1, 0.8, 0.02, 10, 1000, 2000, 50)
