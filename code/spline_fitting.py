@@ -35,18 +35,26 @@ def nod_init3d(args, method):
     colors = Y[:,3:6]
     colorerrs = Y[:,6:]
     colorerrs  = colorerrs.reshape(colorerrs.shape[0], 3, 3)
+    
 
-    bnds = [(None, None) for i in len(theta_init)]
-    for i in range(3*(Nm+Nb-2), ln(theta_init)):
-        bnds[i] = (np.log(0.01), None)
     if method == 'TNC':
         result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'TNC', bounds = bnds, options={'disp':True})
+    
     if method == 'BFGS':
-        result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'BFGS', options={'disp':True})
+        result = op.minimize(nll, theta_init, args=(z, mi, colors, colorerrs, xref), method = 'L-BFGS-B', bounds = bnds,  options={'disp':True,'maxiter':150})
     opt_arr = result["x"]
     print opt_arr
 
     return opt_arr
+
+def lnprior(theta):
+
+    for i in range(3*(Nm+Nb-2), len(theta_init)):
+       if bnds[i][0]<theta[i]:
+          return 0.0
+       else: 
+          return -np.inf
+
 
 def lnlike3d(theta, z, x, y, Cerr ,xref):
     
@@ -63,6 +71,9 @@ def lnlike3d(theta, z, x, y, Cerr ,xref):
     Cint[:,0,0] = np.exp(2.* lnfz[:,0])
     Cint[:,1,1] = np.exp(2.* lnfz[:,1])
     Cint[:,2,2] = np.exp(2.* lnfz[:,2])
+    #Cint[:,0,0] = lnfz[:,0]**2
+    #Cint[:,1,1] = lnfz[:,1]**2
+    #Cint[:,2,2] = lnfz[:,2]**2
     Ctot = Cerr + Cint
     res = mz * (x - xrefz)[:,None] + bz - y
     chi = np.sum(np.einsum('mn,mn->n', res, np.einsum('ijk,ik->ij',np.linalg.inv(Ctot),res))) + np.sum(np.log(np.linalg.det(Ctot)))
@@ -91,7 +102,7 @@ if __name__ == '__main__':
    znods = np.linspace(z_init, z_fin, Nthreads+1)
    xref = CubicSpline(.5*(znods[1:]+znods[:-1]), mrefs)(xrefnod)
 
-
+   """
    m_init = h5py.File("red_par3d_mnods.hdf5","r")["red"][:].reshape(Nm-1,9)[:,0:3]
    b_init = h5py.File("red_par3d_bnods.hdf5","r")["red"][:].reshape(Nb-1,9)[:,3:6]
    lnf_init = h5py.File("red_par3d_lnfnods.hdf5","r")["red"][:].reshape(Nf-1,9)[:,6:]
@@ -102,7 +113,22 @@ if __name__ == '__main__':
    print "lnf=" , lnf_init
 
    theta_init = np.hstack([m_init.flatten(), b_init.flatten(), lnf_init.flatten()])
+   """
+   #theta_init = np.loadtxt('opt_theta.txt')
+   # we already have a good estimate of theta, so we start the optimization by what we have found previously
    theta_init = np.loadtxt('opt_theta.txt')
-   optimized_theta = nod_init3d([xref , theta_init, red_sample] , method = 'TNC')
+   
+   bnds = [(None, None) for i in range(len(theta_init))]
+   l_bnds = np.loadtxt("lower_bnd_scatter.txt").flatten()
+   u_bnds = np.loadtxt("upper_bnd_scatter.txt").flatten()
 
-   np.savetxt("opt_theta.txt", optimized_theta)
+   for i in range(3*(Nm+Nb-2), len(theta_init)):
+        theta_init[i] = .5 * np.log(l_bnds[i-3*(Nm+Nb-2)]) + .5 * np.log(u_bnds[i-3*(Nm+Nb-2)])
+        bnds[i] = (np.log(l_bnds[i-3*(Nm+Nb-2)]) , np.log(u_bnds[i-3*(Nm+Nb-2)]))
+        print (theta_init[i]<bnds[i][1])&(theta_init[i]>bnds[i][0]) 
+   print "parameter bounds for prior are = " , bnds
+   
+   optimized_theta = nod_init3d([xref , theta_init, red_sample] , method = 'BFGS')
+
+   #np.savetxt("opt_theta_new.txt", optimized_theta) #with hardcoded prior of 0.02 for the intrinsic scatters
+   np.savetxt("opt_theta_bfgs_bounded2.txt", optimized_theta) #with hardcoded priors from taking medians of GMM fitting
