@@ -93,12 +93,26 @@ class estimate(object):
         self.b = self.theta[3*(self.Nm-1):3*(self.Nm+self.Nb-2)].reshape(self.Nb-1,3) #array of b-nodes
         self.lnf = self.theta[3*(self.Nm+self.Nb-2):].reshape(self.Nf-1,3) #array of lnf-nodes
 
+        ####################################HACKY ###############################
+        self.bnod = self.bnod[:-1]
+        self.mnod = self.mnod[:-1]
+        self.fnod = self.fnod[:-1]
+        self.m = self.m[:-1,:]
+        self.b = self.b[:-1,:]
+        self.lnf = self.lnf[:-1,:]
+        ####################################################################
+
         red_file = h5py.File("red_cat.hdf5" , 'r')
         red_sample = red_file['red'][:]
         mrefs = red_file['mref'][:]
         red_file.close()
         znods = np.linspace(self.zmin, self.zmax, 36)
-        self.xref = CubicSpline(.5*(znods[1:]+znods[:-1]), mrefs)(self.xrefnod)
+	znods = .5*(znods[1:]+znods[:-1])
+	#####################################HACKY#############################
+        znods = znods[znods<0.7]
+        mrefs = mrefs[znods<0.7]
+	#######################################################################
+        self.xref = CubicSpline(znods, mrefs)(self.xrefnod)
 
         return None
 
@@ -174,7 +188,7 @@ def action(argz):
         	status = 0.0
         	if result["success"] == True : status = 1.0
        
-       	 	sample_file = h5py.File("red_spectroscopic_sample.h5")
+       	 	sample_file = h5py.File("red_spectroscopic_sample_v2.h5")
         	sample_file["opt"][i] = np.array([status , result["x"] , chi_red, lratio])
         	sample_file.close()
      
@@ -216,7 +230,7 @@ if __name__ == '__main__':
    Ngals = mi.shape[0]
    print "Ngals",  Ngals  
     
-   result_file = h5py.File("red_spectroscopic_sample.h5" , 'w')
+   result_file = h5py.File("red_spectroscopic_sample_v2.h5" , 'w')
    result_file.create_dataset("opt", (Ngals, 4) , data = np.zeros((Ngals,4)))
    result_file.close()
 
@@ -224,7 +238,8 @@ if __name__ == '__main__':
    model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_0.02_salp.model")
    zf = 3.0 #HARDCODED
    kcorr_sloan = model.get_kcorrects(zf=zf , zs = 0.2 , filters = "sloan_i")
-   model.set_normalization("sloan_i" , 0.2 , 17.85 - kcorr_sloan, vega=False, apparent=True)
+   #model.set_normalization("sloan_i" , 0.2 , 17.85 - kcorr_sloan , vega=False, apparent=True)
+   model.set_normalization("sloan_i" , 0.2 , 17.85  , vega=False, apparent=True)
    model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
    cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':1.0}
    
