@@ -88,7 +88,7 @@ class estimate(object):
         self.fnod = .5*(self.fnod[1:]+self.fnod[:-1])
         self.mnod = .5*(self.mnod[1:]+self.mnod[:-1])
 
-        self.theta = np.loadtxt("opt_theta_bfgs_bounded2.txt")
+        self.theta = np.loadtxt("opt_theta_bfgs_bounded3.txt")
         self.m = self.theta[0:3*(self.Nm-1)].reshape(self.Nm-1,3) #array of m-nodes
         self.b = self.theta[3*(self.Nm-1):3*(self.Nm+self.Nb-2)].reshape(self.Nb-1,3) #array of b-nodes
         self.lnf = self.theta[3*(self.Nm+self.Nb-2):].reshape(self.Nf-1,3) #array of lnf-nodes
@@ -188,7 +188,7 @@ def action(argz):
         	status = 0.0
         	if result["success"] == True : status = 1.0
        
-       	 	sample_file = h5py.File("red_spectroscopic_sample_v2.h5")
+       	 	sample_file = h5py.File("red_spectroscopic_sample_v4.h5")
         	sample_file["opt"][i] = np.array([status , result["x"] , chi_red, lratio])
         	sample_file.close()
      
@@ -230,7 +230,7 @@ if __name__ == '__main__':
    Ngals = mi.shape[0]
    print "Ngals",  Ngals  
     
-   result_file = h5py.File("red_spectroscopic_sample_v2.h5" , 'w')
+   result_file = h5py.File("red_spectroscopic_sample_v4.h5" , 'w')
    result_file.create_dataset("opt", (Ngals, 4) , data = np.zeros((Ngals,4)))
    result_file.close()
 
