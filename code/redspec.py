@@ -188,7 +188,7 @@ def action(argz):
         	status = 0.0
         	if result["success"] == True : status = 1.0
        
-       	 	sample_file = h5py.File("red_spectroscopic_sample_v4.h5")
+       	 	sample_file = h5py.File("red_spectroscopic_sample_v4again.h5")
         	sample_file["opt"][i] = np.array([status , result["x"] , chi_red, lratio])
         	sample_file.close()
      
@@ -230,7 +230,7 @@ if __name__ == '__main__':
    Ngals = mi.shape[0]
    print "Ngals",  Ngals  
     
-   result_file = h5py.File("red_spectroscopic_sample_v4.h5" , 'w')
+   result_file = h5py.File("red_spectroscopic_sample_v4again.h5" , 'w')
    result_file.create_dataset("opt", (Ngals, 4) , data = np.zeros((Ngals,4)))
    result_file.close()
 

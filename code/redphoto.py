@@ -88,17 +88,30 @@ class estimate(object):
         self.fnod = .5*(self.fnod[1:]+self.fnod[:-1])
         self.mnod = .5*(self.mnod[1:]+self.mnod[:-1])
 
-        self.theta = np.loadtxt("opt_theta.txt")
+        self.theta = np.loadtxt("opt_theta_bfgs_bounded2.txt")
         self.m = self.theta[0:3*(self.Nm-1)].reshape(self.Nm-1,3) #array of m-nodes
         self.b = self.theta[3*(self.Nm-1):3*(self.Nm+self.Nb-2)].reshape(self.Nb-1,3) #array of b-nodes
         self.lnf = self.theta[3*(self.Nm+self.Nb-2):].reshape(self.Nf-1,3) #array of lnf-nodes
 
+        ####################################HACKY ###############################
+        self.bnod = self.bnod[:-1]
+        self.mnod = self.mnod[:-1]
+        self.fnod = self.fnod[:-1]
+        self.m = self.m[:-1,:]
+        self.b = self.b[:-1,:]
+        self.lnf = self.lnf[:-1,:]
+        ####################################################################
         red_file = h5py.File("red_cat.hdf5" , 'r')
         red_sample = red_file['red'][:]
         mrefs = red_file['mref'][:]
         red_file.close()
         znods = np.linspace(self.zmin, self.zmax, 36)
-        self.xref = CubicSpline(.5*(znods[1:]+znods[:-1]), mrefs)(self.xrefnod)
+	znods = .5*(znods[1:]+znods[:-1])
+	#####################################HACKY#############################
+        znods = znods[znods<0.7]
+        mrefs = mrefs[znods<0.7]
+	#######################################################################
+        self.xref = CubicSpline(znods, mrefs)(self.xrefnod)
 
         return None
 
@@ -174,7 +187,7 @@ def action(argz):
         	status = 0.0
         	if result["success"] == True : status = 1.0
        
-       	 	sample_file = h5py.File("red_photometric_sample.h5")
+       	 	sample_file = h5py.File("red_photometric_sample_v2.h5")
         	sample_file["opt"][i] = np.array([status , result["x"] , chi_red, lratio])
         	sample_file.close()
      
@@ -190,7 +203,8 @@ def sampler(zmin, zmax , dz , nwalkers , nburn, npro, Nthreads):
     pool = Pool(Nthreads)
     mapfn = pool.map
     arglist = [None] * Nthreads
-    galnods = np.split(np.arange(30996150) , Nthreads) 
+    #galnods = np.split(np.arange(30996150) , Nthreads) 
+    galnods = np.split(np.arange(34290660) , Nthreads) 
     
     for j in range(Nthreads):
          arglist[j] = (galnods[j][0] , galnods[j][-1])
@@ -216,17 +230,17 @@ if __name__ == '__main__':
    color_errs = reduced_kids['color_errs'][:]
    Ngals = mi.shape[0]
    print "Ngals",  Ngals  
-    
-   result_file = h5py.File("red_photometric_sample.h5" , 'w')
+   
+   result_file = h5py.File("red_photometric_sample_v2.h5" , 'w')
    result_file.create_dataset("opt", (Ngals, 4) , data = np.zeros((Ngals,4)))
    result_file.close()
 
-   model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_0.02_chab.model")
-   model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
-   kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.25 , filters = "sloan_i")
-   model.set_normalization("sloan_i" , 0.25 , redmapper_mstar(0.25)-kcorr_sloan, vega=False, apparent=True)
-    
+   model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_0.02_salp.model")
    zf = 3.0 #HARDCODED
-   cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':0.72}
+   model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
+   #kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.25 , filters = "sloan_i")
+   model.set_normalization("sloan_i" , 0.2 , 17.85, vega=False, apparent=True)
+    
+   cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':1.0}
    zmin , zmax , dz = 0.1 , 0.8 , 0.02
-   sampler(0.1, 0.8, 0.02, 10, 1000, 2000, 50)
+   sampler(0.1, 0.8, 0.02, 10, 1000, 2000, 60)
