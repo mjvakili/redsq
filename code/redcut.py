@@ -3,6 +3,8 @@ import cosmolopy
 from scipy.interpolation import CubicSpline
 import cosmolopy.distance as cd
 import h5py
+import scipy.optimize as op
+import h5py
 
 def dvdz(z):
     '''
@@ -13,46 +15,68 @@ def dvdz(z):
     d_a = cd.angular_diameter_distance(z, **cosmo) #angular diameter distance
     h = cd.e_z(z, **cosmo) #hubble parameter
     dvdz = (1+z)**2. * d_a **2  * h **-1. #dv/dz
-    #for the sake of numerical stability we devide dvdz by 10000.0
     return dvdz
 
 class cutter(object):
 
 
-    def __init__(self, zmin, zmax, dz, Nf, cat):
+    def __init__(self, zmin, zmax, dz, Nf, cat,
+                 chimax_glob, chimax_lbnd, 
+		 chimax_ubnd, niter, nbins):
  
         self.zmin = zmin #minimum redshift
         self.zmax = zmax #maximum redshift
         self.dz = dz     #width of redshift bins
 	self.Nf = Nf 
+	self.chimax_glob = chimax_glob
+	self.chimax_lbnd = chimax_lbnd
+	self.chimax_ubnd = chimax_ubnd
+        self.niter = niter
+	self.nbins = nbins
         #initializing the nods where the maximum chisquared is defined
         self.nod = np.linspace(self.zmin, self.zmax,self.Nf)
         self.nod = .5 * (self.nod[:-1]+self.nod[1:]) 
         #initializing chi max values at the chimax nods
         self.chinod = 2.*np.ones_like((self.chinod))
         #data initialization
-        
-        self.opts, self.zs, self.chis, self.ls = \
-        cat[:,0], cat[:,1], cat[:,2], cat[:,3]
-       
+        self.cat = cat
         #only keeping the data for which optimization 
         #is successful
-        self.zs = self.zs[self.opts==1]
-        self.chis = self.chis[self.opts==1]
-        self.ls = self.ls[self.opts==1]
-        self.opts = self.opts[self.opts==1]
+        #only keeping the candidates for which chi is less than 
+        #the global maximum chi squared
+        self.cat = self.cat[(self.cat[:,0]==1)&(self.cat[:,1]>self.zmin)& \
+                            (self.cat[:,1]<self.zmax)&(self.cat[:,2]<self.chimax_global)]
+        #initializing nods and maximum chis at nods			    
+        self.nod = np.linspace(elf.zmin, self.zmax, self.Nf)
+        self.chinods_init = 1.5 + np.zeros(self.Nf)
+        self.chinods_init[::2] -= 0.5
+        self.chinods = self.chinods_init.copy()
 
-    def chiz(self, z):
+	return None
 
-        return CubicSpline(self.nod, self.chinod)(z)
-     
-    def reducer(self):
+    def lnlike_chi(self, theta):
 
-        mask = self.chis > self.chiz(self.zs)
+        chinods , norm = np.exp(theta[:-1]), np.exp(theta[-1])
+	chi_maxs = CubicSpline(self.nods, chinods)(self.cat[:,1])
+	cat_red = self.cat[self.cat[:,2] < chi_maxs]
+	hist , edges = np.histogram(cat_red[:,1], bins = self.nbins)
+        bins = .5*(edges[1:]+edges[:-1])
+        dbin = edges[1] - edges[0]
+        dvdbin = dvdz(bins)
+        dvbin = dvdbin * dbin
+        chisq = np.sum((hist - norm*dvbin)**2./(hist+ norm*dvbin)) 
+        print chisq
         
-        return cat[mask]
+	return chisq
+    
+    def lnlike_z(self):
 
-        
+        return None 
+
+    def calibrator(self):
+
+
+        return None
 
  if __name__ == '__main__':
 
