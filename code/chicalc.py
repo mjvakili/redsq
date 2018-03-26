@@ -5,10 +5,7 @@ from scipy.interpolate import CubicSpline
 import ezgal
 import cosmolopy.distance as cd
 import util
-import kids_gama
 import emcee
-from mixture_filtering import catalog_combinator
-import pyfits as pf
 
 def dvdz(z):
     '''
@@ -113,6 +110,12 @@ class calibrate(object):
         mrefs = mrefs[znods<0.7]
 	#######################################################################
         self.xref = CubicSpline(znods, mrefs)(self.xrefnod)
+        
+
+        #######################
+
+        self.dz_theta_0 = dz_theta_0
+        self.chimax_theta_0 = chimax_theta_0 
 
         return None
 
@@ -157,20 +160,41 @@ class calibrate(object):
         ls = luminosity(self.mis, z)
                  
         return ls
+    
+    def chimax_lnlike(self, chimax_theta):
+        """
+        temp estimate of chimax_theta at the loc of chi nods
+	"""
+        return None
 
+ 
+
+    def solvemax_chi_lnlike(self):
+
+        return None
          
-    def ab_lnlike(dz_theta, y, nods, z):
+    def ab_lnlike(self, dz_theta, mask):
         """
         dz_theta = estimate of dz at ab spline nods
         z = current estimated of zred
-
         """
-        x , y = sample2[:,1], sample2[:,1] - redshift
-        
-        dz_pred = CubicSpline(self.abnod , dz_theta)(z)
+        x , y = self.calib_sample[mask,1], self.calib_sample[mask,1]-self.calib_sample[mask,-1]
+        dz_pred = CubicSpline(self.abnod , dz_theta)(x)
         chisq = np.sum(np.abs(y - dz_pred))
     
         return chisq
+     
+    def solve_ab_lnlike(self, mask):
+        """
+	solves ab_lnlike
+	dz_theta_0 = initial guess for dz_theta
+        """
+        nll = lambda *args: self.ab_lnlike(*args)
+	result = op.minimize(nll, self.dz_theta_zero*np.ones((self.Nab)), args=(mask))
+	
+	return result["x"]
+
+
 
 if __name__ == '__main__':
 
@@ -188,10 +212,10 @@ if __name__ == '__main__':
    
    ########## THE ENTIRE KIDS WITH UNCALIB Z l CHI #############
    red_sample = h5py.File("red_photometric_sample_v2.h5" , "r")
-   red_sample = sample["opt"][:34290660]
+   red_sample = red_sample["opt"][:34290660]
 
    ######### KiDS GALAXIES WITH SPECZ FOR CALIBRATION ######## 
-   spec_kids = h5py.File("reduced_specallkids.h5" , 'r')
+   spec_kids = h5py.File("reduced_speccalibkids.h5" , 'r')
    spec_ID = spec_kids["ID"][:]
    spec_z = spec_kids["redshift"][:]
    
@@ -213,7 +237,7 @@ if __name__ == '__main__':
    
    calib_sample = np.vstack([spec_red_sample.T , spec_specz]).T
    
-   print calib_sample
+   print calib_sample #sanity check
    
 
    ########## INITIALIZATION OF THE EZGAL MODEL ########
@@ -223,7 +247,4 @@ if __name__ == '__main__':
    model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
    #kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.25 , filters = "sloan_i")
    model.set_normalization("sloan_i" , 0.2 , 17.85, vega=False, apparent=True)
-    
    cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':1.0}
-   zmin , zmax , dz = 0.1 , 0.8 , 0.02
-   sampler(0.1, 0.8, 0.02, 10, 1000, 2000, 60)
