@@ -78,10 +78,10 @@ class calibrate(object):
         self.mnod = .5*(self.mnod[1:]+self.mnod[:-1])
 
 
-        self.Nhis = Nhis  #the number of bins for making hist of data
+        self.Nhist = Nhist  #the number of bins for making hist of data
         self.Nab = Nab    #the number of spline nodes for afterburner
         self.Nchi = Nchi  #the number of spline nodes for parameterizing chimax
-        self.hisnod = np.linspace(self.zmin,self.zmax,self.Nhis) #the nods at which we make hist of data 
+        self.hisnod = np.linspace(self.zmin,self.zmax,self.Nhist) #the nods a which we make hist of data 
         self.abnod = np.linspace(self.zmin,self.zmax,self.Nab) # the afterburner nods
         self.chinod = np.linspace(self.zmin,self.zmax,self.Nchi) #the chimax nods
 
@@ -132,8 +132,10 @@ class calibrate(object):
         
         return mz, bz, lnfz, xrefz
 
-    def chi3d(self, z):
+    def chi3d(self,z):
         """
+	this recalculates chi3d for every galaxy in the survey for which we have a zred 
+	regardless of l and chi
         fast calculation of all the chis for a set of zs 
         z = the current estimate of reshifts
         """
@@ -142,7 +144,7 @@ class calibrate(object):
         lnfz = CubicSpline(self.fnod , self.lnf)(z)
         xrefz = CubicSpline(self.xrefnod , self.xref)(z)
 
-        Cint = np.zeros((len(z), 3, 3))
+        Cint = np.zeros((len(self.z), 3, 3))
         Cint[:,0,0] = np.exp(2.* lnfz[:,0])
         Cint[:,1,1] = np.exp(2.* lnfz[:,1])
         Cint[:,2,2] = np.exp(2.* lnfz[:,2])
@@ -154,29 +156,19 @@ class calibrate(object):
     
     def l3d(self, z):
         """
-        fast calculation of all the luminosity ratios for a set of zs 
+	this recalculates l3d for every galaxy in the survey for which we have a zred
+        regardless of its chi and l
+	fast calculation of all the luminosity ratios for a set of zs 
         z = the current estimate of reshifts
         """
         ls = luminosity(self.mis, z)
                  
         return ls
     
-    def chimax_lnlike(self, chimax_theta):
-        """
-        temp estimate of chimax_theta at the loc of chi nods
-	"""
-        return None
-
- 
-
-    def solvemax_chi_lnlike(self):
-
-        return None
-         
     def ab_lnlike(self, dz_theta, mask):
         """
         dz_theta = estimate of dz at ab spline nods
-        z = current estimated of zred
+        mask = some mask on chi and l of spec red gals
         """
         x , y = self.calib_sample[mask,1], self.calib_sample[mask,1]-self.calib_sample[mask,-1]
         dz_pred = CubicSpline(self.abnod , dz_theta)(x)
@@ -188,11 +180,83 @@ class calibrate(object):
         """
 	solves ab_lnlike
 	dz_theta_0 = initial guess for dz_theta
+	mask = some mask on chi and l of spec red gals
         """
         nll = lambda *args: self.ab_lnlike(*args)
 	result = op.minimize(nll, self.dz_theta_zero*np.ones((self.Nab)), args=(mask))
 	
 	return result["x"]
+    
+    def chimax_lnlike(self, chimax_theta):
+        """
+        temp estimate of chimax_theta at the loc of chi nods
+	"""
+
+	#first have to run the ab
+        #alt chinods , norm =  np.exp(chimax_theta[:-1]), np.exp(chimax_theta[-1]) 
+        chinods =  np.exp(chimax_theta)
+	chi_maxes = CubicSpline(nods ,chinods)(self.calib[:,1])
+	mask = self.calib[:,2] < chimax_calib
+        dz_ab =  solve_ab_lnlike(self, mask)
+	print "CURRENT ESTIMATE OF AB = " , dz_a
+
+	# calibrate the calib-zs and rezs
+	self.calib[:,1] = self.calib[:,1] - CubicSpline(self.abnod, dz_ab)(self.z) #calib gals
+	self.z = self.z - CubicSpline(self.abnod , dz_ab)(self.z) #all gals
+        #calibrate the red-chis and red-ls
+        self.chi = self.chi3d(z)
+	self.l = self.l3d(z)
+        #mask the red-ls that are larger than self.lmin (=0.5 or 1)
+	mask = self.l > self.lmin
+      
+    	#chinods , norm = np.exp(chimax_theta[:-1]), np.exp(chimax_theta[-1])  
+    	chinods = np.exp(chimax_theta)
+    	
+	chi_maxes = CubicSpline(nods ,chinods)(self.z[mask])
+    	sample_z = self.z[self.chi < chi_maxes]
+    	hist , edges = np.histogram(sample_z, bins = self.Nhist)
+    	bins = .5*(edges[1:]+edges[:-1])
+    	dbin = edges[1] - edges[0]
+    	dvdbin = dvdz(bins)
+    	dvbin = dvdbin * dbin
+    	chisq = np.sum((hist - self.norm*dvbin)**2./(hist+ self.norm*dvbin)) 
+        
+	return chisq
+ 
+
+    def solve_chimax_lnlike(self):
+        """
+	solves chi_max_lnlike
+        """
+
+    	chinods_0 = 2 + np.zeros((self.Nhist))
+
+    	nll = lambda *args: chimax_lnlike(*args)
+    
+    	if prior_tmp == 'forced':
+       	   bnds = []
+       	   for i in range(len(nods)): 
+               bnds.append((np.log(1.),np.log(4.0)))
+       	       norm_bound = np.log(target_nbar / (processed.shape[0]* 360.3 / (41252.96 * 34290660)))
+       			print norm_bound
+       			bnds.append((-1.7, -1.6))
+    	if prior_tmp == 'free':
+       	bnds = []
+       	for i in range(len(nods)): 
+           bnds.append((np.log(1.),np.log(3)))
+       	norm_bound = np.log(target_nbar / (processed.shape[0]* 360.3 / (41252.96 * 34290660)))
+       	print norm_bound
+       	#bnds.append((norm_bound - 1.0, norm_bound+1))
+       	#bnds.append((norm_bound - 10, norm_bound+10.))
+       	bnds.append((-10., -1.))
+    	result = op.minimize(nll, np.append(np.log(chinods_0), np.log(norm_0)), args=(sample2, nods), method='SLSQP', bounds = bnds, options={'disp': True ,'eps' : .001})
+    	print "number density" , np.exp(result["x"])[-1] * processed.shape[0]* 360.3 / (41253 * 34290660)
+    	print "processed fraction" , processed.shape[0] / 34290660.0
+    	print "result" , np.exp(result["x"])
+    	density = np.exp(result["x"])[-1] * processed.shape[0]* 360.3 / (41253 * 34290660)  
+
+        return None
+         
 
 
 
