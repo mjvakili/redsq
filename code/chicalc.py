@@ -18,6 +18,15 @@ def dvdz(z):
     dvdz = (1+z)**2. * d_a **2  * h **-1. #dv/dz
     return dvdz
 
+def vc(z):
+    '''
+    dv/dz to impose uniformity
+    in redshift
+    '''
+    cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':1.0}
+ 
+    return cd.comoving_volume(z,**cosmo)
+
 def luminosity(m,z):
     '''
     L/Lstar of redsequence galaxies
@@ -223,6 +232,41 @@ class calibrate(object):
         
 	return chisq
  
+    def chimax_lnlike(chimax_theta):
+
+	#first have to run the ab
+        #alt chinods , norm =  np.exp(chimax_theta[:-1]), np.exp(chimax_theta[-1]) 
+        chinods =  np.exp(chimax_theta)
+	chi_max_calib = CubicSpline(self.chinods ,chinods)(self.calib[:,1])
+	mask = (self.calib[:,2] < chimax_calib)&(self.calib[:,3] > self.lmin)
+        dz_ab = solve_ab_lnlike(self, mask)
+	print "CURRENT ESTIMATE OF AB = " , dz_a
+
+	# calibrate the calib-zs and rezs
+	self.calib[:,1] = self.calib[:,1] - CubicSpline(self.abnod, dz_ab)(self.calib[:,1]) #calib gals
+	self.z = self.z - CubicSpline(self.abnod , dz_ab)(self.z) #all gals
+        #calibrate the red-chis and red-ls
+        self.chi = self.chi3d(z)
+	self.l = self.l3d(z)
+        #mask the red-ls that are larger than self.lmin (=0.5 or 1)
+	mask = self.l > self.lmin
+      
+    	#chinods , norm = np.exp(chimax_theta[:-1]), np.exp(chimax_theta[-1])  
+    	chinods = np.exp(chimax_theta)
+    	norm = self.nbar * 360.3 / (41252.96)
+    	
+	chi_maxes = CubicSpline(self.chinods ,chinods)(self.z)
+    	sample3 = self.z[self.catalog[:,2]<chi_maxes]
+	hist , edges = np.histogram(sample3[:,1], bins = self.Nhist)
+    	bins = .5*(edges[1:]+edges[:-1])
+    	dbin = edges[1] - edges[0]
+    	dvbin = vc(edges[1:]) - vc(edges[:-1])
+    	dvbin = dvbin * 360.3 / (41252.96)
+    	hist = hist / dvbin
+
+    	chisq = np.sum((hist - self.nbar)**2./ (self.nbar* dvbin**-1.))
+    
+    	return chisq
 
     def solve_chimax_lnlike(self):
         """
