@@ -40,7 +40,11 @@ def luminosity(m,z):
 class calibrate(object):
 
     def __init__(self, zmin, zmax, dz, Nb, Nm, Nf, Nhis, Nab, Nchi):
-       
+        
+        # selection summary
+	self.lmin = lmin
+        self.nbar = nbar
+
         # the inferred c-m relation parameters
         self.theta = theta
 
@@ -50,13 +54,13 @@ class calibrate(object):
         self.color_errs = color_errs
         self.mis = mis
         
-        # ID and z of calib gals
-        self.ID_calib = ID_calib
-        self.z_calib = z_calib
-       
-        #CROSS MATCH BETWEEN ALL and calib gals
+        #value added properties of all gals
+        self.z = z
+	self.l = l
+	self.chi = chi
 
-        self.mask_calib = np.where(np.in1d(self.ID_calib , self.ID)==True)
+        # ID and z of calib gals
+        self.calib = calib   # the whole calibration sample consisting of ID, zrm, chi, l, zspec. the same as calib_sample defined below
 
         # initial estimates of chi, l, z
         self.chi_init = chi_init
@@ -69,14 +73,12 @@ class calibrate(object):
         self.zmax_abs = zmax_abs
         self. l_abs = l_abs
 
-
         self.zmin = zmin #minimum redshift
         self.zmax = zmax #maximum redshift
         self.dz = dz     #width of redshift bins
         self.Nb = Nb
 	self.Nm = Nm
 	self.Nf = Nf
-
         
         self.bnod = np.linspace(self.zmin,self.zmax,self.Nb) #spacing of .05
         self.mnod = np.linspace(self.zmin,self.zmax,self.Nm) #spacing of .1
@@ -86,14 +88,12 @@ class calibrate(object):
         self.fnod = .5*(self.fnod[1:]+self.fnod[:-1])
         self.mnod = .5*(self.mnod[1:]+self.mnod[:-1])
 
-
         self.Nhist = Nhist  #the number of bins for making hist of data
         self.Nab = Nab    #the number of spline nodes for afterburner
         self.Nchi = Nchi  #the number of spline nodes for parameterizing chimax
         self.hisnod = np.linspace(self.zmin,self.zmax,self.Nhist) #the nods a which we make hist of data 
         self.abnod = np.linspace(self.zmin,self.zmax,self.Nab) # the afterburner nods
         self.chinod = np.linspace(self.zmin,self.zmax,self.Nchi) #the chimax nods
-
 
         self.theta = np.loadtxt("opt_theta_bfgs_bounded2.txt")
         self.m = self.theta[0:3*(self.Nm-1)].reshape(self.Nm-1,3) #array of m-nodes
@@ -120,9 +120,7 @@ class calibrate(object):
 	#######################################################################
         self.xref = CubicSpline(znods, mrefs)(self.xrefnod)
         
-
-        #######################
-
+	#######################
         self.dz_theta_0 = dz_theta_0
         self.chimax_theta_0 = chimax_theta_0 
 
@@ -141,17 +139,17 @@ class calibrate(object):
         
         return mz, bz, lnfz, xrefz
 
-    def chi3d(self,z):
+    def chi3d(self):
         """
 	this recalculates chi3d for every galaxy in the survey for which we have a zred 
 	regardless of l and chi
         fast calculation of all the chis for a set of zs 
         z = the current estimate of reshifts
         """
-        bz = CubicSpline(self.bnod , self.b)(z)
-        mz = CubicSpline(self.mnod , self.m)(z)
-        lnfz = CubicSpline(self.fnod , self.lnf)(z)
-        xrefz = CubicSpline(self.xrefnod , self.xref)(z)
+        bz = CubicSpline(self.bnod , self.b)(self.z)
+        mz = CubicSpline(self.mnod , self.m)(self.z)
+        lnfz = CubicSpline(self.fnod , self.lnf)(self.z)
+        xrefz = CubicSpline(self.xrefnod , self.xref)(self.z)
 
         Cint = np.zeros((len(self.z), 3, 3))
         Cint[:,0,0] = np.exp(2.* lnfz[:,0])
@@ -163,14 +161,14 @@ class calibrate(object):
     
         return chis
     
-    def l3d(self, z):
+    def l3d(self):
         """
 	this recalculates l3d for every galaxy in the survey for which we have a zred
         regardless of its chi and l
 	fast calculation of all the luminosity ratios for a set of zs 
         z = the current estimate of reshifts
         """
-        ls = luminosity(self.mis, z)
+        ls = luminosity(self.mis, self.z)
                  
         return ls
     
@@ -179,7 +177,7 @@ class calibrate(object):
         dz_theta = estimate of dz at ab spline nods
         mask = some mask on chi and l of spec red gals
         """
-        x , y = self.calib_sample[mask,1], self.calib_sample[mask,1]-self.calib_sample[mask,-1]
+        x , y = self.calib[mask,1], self.calib[mask,1]-self.calib[mask,-1]
         dz_pred = CubicSpline(self.abnod , dz_theta)(x)
         chisq = np.sum(np.abs(y - dz_pred))
     
@@ -205,7 +203,7 @@ class calibrate(object):
         #alt chinods , norm =  np.exp(chimax_theta[:-1]), np.exp(chimax_theta[-1]) 
         chinods =  np.exp(chimax_theta)
 	chi_maxes = CubicSpline(nods ,chinods)(self.calib[:,1])
-	mask = self.calib[:,2] < chimax_calib
+	mask = (self.calib[:,2] < chimax_calib)&(self.calib[:,3]>self.lmin)
         dz_ab =  solve_ab_lnlike(self, mask)
 	print "CURRENT ESTIMATE OF AB = " , dz_a
 
@@ -240,14 +238,14 @@ class calibrate(object):
 	chi_max_calib = CubicSpline(self.chinods ,chinods)(self.calib[:,1])
 	mask = (self.calib[:,2] < chimax_calib)&(self.calib[:,3] > self.lmin)
         dz_ab = solve_ab_lnlike(self, mask)
-	print "CURRENT ESTIMATE OF AB = " , dz_a
+	print "CURRENT ESTIMATE OF AB = " , dz_ab
 
 	# calibrate the calib-zs and rezs
 	self.calib[:,1] = self.calib[:,1] - CubicSpline(self.abnod, dz_ab)(self.calib[:,1]) #calib gals
 	self.z = self.z - CubicSpline(self.abnod , dz_ab)(self.z) #all gals
         #calibrate the red-chis and red-ls
-        self.chi = self.chi3d(z)
-	self.l = self.l3d(z)
+        self.chi = self.chi3d()
+	self.l = self.l3d()
         #mask the red-ls that are larger than self.lmin (=0.5 or 1)
 	mask = self.l > self.lmin
       
@@ -274,35 +272,17 @@ class calibrate(object):
         """
 
     	chinods_0 = 2 + np.zeros((self.Nhist))
-
     	nll = lambda *args: chimax_lnlike(*args)
-    
-    	if prior_tmp == 'forced':
-       	   bnds = []
-       	   for i in range(len(nods)): 
-               bnds.append((np.log(1.),np.log(4.0)))
-       	       norm_bound = np.log(target_nbar / (processed.shape[0]* 360.3 / (41252.96 * 34290660)))
-       			print norm_bound
-       			bnds.append((-1.7, -1.6))
-    	if prior_tmp == 'free':
-       	bnds = []
-       	for i in range(len(nods)): 
            bnds.append((np.log(1.),np.log(3)))
-       	norm_bound = np.log(target_nbar / (processed.shape[0]* 360.3 / (41252.96 * 34290660)))
        	print norm_bound
-       	#bnds.append((norm_bound - 1.0, norm_bound+1))
-       	#bnds.append((norm_bound - 10, norm_bound+10.))
        	bnds.append((-10., -1.))
-    	result = op.minimize(nll, np.append(np.log(chinods_0), np.log(norm_0)), args=(sample2, nods), method='SLSQP', bounds = bnds, options={'disp': True ,'eps' : .001})
-    	print "number density" , np.exp(result["x"])[-1] * processed.shape[0]* 360.3 / (41253 * 34290660)
+    	result = op.minimize(nll, np.log(chinods_0), args=sample2, method='SLSQP', bounds = bnds, options={'disp': True ,'eps' : .001})
     	print "processed fraction" , processed.shape[0] / 34290660.0
     	print "result" , np.exp(result["x"])
     	density = np.exp(result["x"])[-1] * processed.shape[0]* 360.3 / (41253 * 34290660)  
 
         return None
          
-
-
 
 if __name__ == '__main__':
 
@@ -353,6 +333,5 @@ if __name__ == '__main__':
    model = ezgal.model("/net/delft/data2/vakili/easy/ezgal_models/www.baryons.org/ezgal/models/bc03_burst_0.1_z_0.02_salp.model")
    zf = 3.0 #HARDCODED
    model.add_filter("/net/delft/data2/vakili/easy/i.dat" , "kids" , units = "nm")
-   #kcorr_sloan = model.get_kcorrects(zf=3.0 , zs = 0.25 , filters = "sloan_i")
    model.set_normalization("sloan_i" , 0.2 , 17.85, vega=False, apparent=True)
    cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':1.0}
