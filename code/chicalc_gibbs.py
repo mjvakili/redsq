@@ -301,10 +301,10 @@ class calibrate(object):
         print self.z[uber_mask]
         result_file = h5py.File("LRG_lmin_"+str(self.lmin)+"_nbar_"+str(self.nbar)+".h5" , 'w')
         result_file.create_dataset("ID" , (nlrg,  ) , data = self.ID[uber_mask], dtype = 'S25')
-        result_file.create_dataset("mi", (nlrg, ) , data = self.mis[uber_mask], dtype = 'f')
-        result_file.create_dataset("redshift", (nlrg, ) , data = self.z[uber_mask], dtype = 'f')
-        result_file.create_dataset("colors", (nlrg, 3) , data = self.colors[uber_mask], dtype = 'f')
-        result_file.create_dataset("color_errs", (nlrg, 3, 3) , data = self.color_errs[uber_mask], dtype = 'f')
+        result_file.create_dataset("mi", (nlrg, ) , data = self.mis[uber_mask])
+        result_file.create_dataset("redshift", (nlrg, ) , data = self.z[uber_mask])
+        result_file.create_dataset("colors", (nlrg, 3) , data = self.colors[uber_mask])
+        result_file.create_dataset("color_errs", (nlrg, 3, 3) , data = self.color_errs[uber_mask])
         result_file.close()
         
 	return None
@@ -338,7 +338,7 @@ if __name__ == '__main__':
    redshift = reduced_kids['redshift'][:34290660]
    colors = reduced_kids['colors'][:34290660]
    color_errs = reduced_kids['color_errs'][:34290660]
-   
+   sg2 = reduced_kids['SG2PHOT'][:34290660] 
    ########## THE ENTIRE KIDS WITH UNCALIB Z l CHI #############
    red_sample = h5py.File("red_photometric_sample_v2.h5" , "r")
    red_sample = red_sample["opt"][:34290660]
@@ -361,8 +361,8 @@ if __name__ == '__main__':
 
    ######## MATCHED SPECZ & REDZ ARRAY FOR CALIBRATION #######
    
-   spec_ID = np.hstack([spec_ID, df_ID])
-   spec_z = np.hstack([spec_z, df_z])
+   #spec_ID = np.hstack([spec_ID, df_ID])
+   #spec_z = np.hstack([spec_z, df_z])
    print "before removal", spec_z.shape   
 
    spec_ID , spec_index = np.unique(spec_ID , return_index = True)
@@ -407,20 +407,21 @@ if __name__ == '__main__':
    N = red_sample.shape[0]
    pfac = N*1.0/colors.shape[0]
    print "shape of pfac" , pfac
-   zmin, zmax, dz = 0.1, 0.8, 0.02
+   zmin, zmax, dz = 0.1, 0.7, 0.02
    Nb, Nm, Nf = 15, 8, 6
    Nhis, Nab, Nchi = 40, 7, 6 
 
-   lmin, nbar = 0.5, 0.001
+   lmin, nbar = 1.0, 0.0002
    z, l, chi = red_sample[:N,1], red_sample[:N,3], red_sample[:N,2]
    calib = calib_sample
    print "shape of calib" , calib.shape 
    colors = colors[:N]
    color_errs = color_errs[:N]
+   sg2 = sg2[:N]
    mis = mi[:N]
    ID = ID[:N]
 
-   Qmask = (red_sample[:N,0] == 1)&(red_sample[:N,2]>0)&(red_sample[:N,2]<200)
+   Qmask = (red_sample[:N,0] == 1)&(red_sample[:N,2]>0)&(red_sample[:N,2]<200)&(mis<21.5)&(sg2==0)
    
    #print "test", luminosity(mis,z)    
 
