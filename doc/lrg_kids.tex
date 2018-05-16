@@ -1,0 +1,643 @@
+% mnras_template.tex 
+%
+% LaTeX template for creating an MNRAS paper
+%
+% v3.0 released 14 May 2015
+% (version numbers match those of mnras.cls)
+%
+% Copyright (C) Royal Astronomical Society 2015
+% Authors:
+% Keith T. Smith (Royal Astronomical Society)
+
+% Change log
+%
+% v3.0 May 2015
+%    Renamed to match the new package name
+%    Version number matches mnras.cls
+%    A few minor tweaks to wording
+% v1.0 September 2013
+%    Beta testing only - never publicly released
+%    First version: a simple (ish) template for creating an MNRAS paper
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basic setup. Most papers should leave these options alone.
+\documentclass[fleqn,usenatbib]{mnras}
+
+% MNRAS is set in Times font. If you don't have this installed (most LaTeX
+% installations will be fine) or prefer the old Computer Modern fonts, comment
+% out the following line
+\usepackage{newtxtext,newtxmath}
+% Depending on your LaTeX fonts installation, you might get better results with one of these:
+%\usepackage{mathptmx}
+%\usepackage{txfonts}
+
+% Use vector fonts, so it zooms properly in on-screen viewing software
+% Don't change these lines unless you know what you are doing
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+
+
+%%%%% AUTHORS - PLACE YOUR OWN PACKAGES HERE %%%%%
+
+% Only include extra packages if you really need them. Common packages are:
+\usepackage{graphicx}	% Including figure files
+\usepackage{amsmath}	% Advanced maths commands
+\usepackage{amssymb}	
+
+%%%%% AUTHORS - PLACE YOUR OWN PACKAGES HERE %%%%%
+
+% Only include extra packages if you really need them. Common packages are:
+\usepackage{bigints}    %larger integrals
+\usepackage{bm}
+
+
+
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{units}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\usepackage{cleveref}
+
+\crefformat{section}{\S#2#1#3} % see manual of cleveref, section 8.2.1
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}
+
+
+%\usepackage{hyperref}
+%\newcommand{\tod}[1]{{\textcolor{red}{ #1}}}
+%\def\pvm#1{[PM: {\it #1}] }
+%\def\pvm2#1{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%% AUTHORS - PLACE YOUR OWN COMMANDS HERE %%%%%
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{eqnarray}}
+\newcommand{\ea}{\end{eqnarray}}
+\newcommand{\mperh}{\,h^{-1}\,{\rm Mpc}}
+\newcommand{\hperm}{\,h\,{\rm Mpc}^{-1}}
+\newcommand{\todo}[1]{{\em \textcolor{red}{ #1}}}
+\newcommand{\lang}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\vc}{\bm{c}}
+\newcommand{\va}{\bm{a}(z)}
+\newcommand{\vb}{\bm{b}(z)}
+\newcommand{\vCo}{\bm{C}_{\rm obs}}
+\newcommand{\vCoi}{\bm{C}_{\rm obs}^{-1}}
+\newcommand{\vCi}{\bm{C}_{\rm int}(z)}
+\newcommand{\vCii}{\bm{C}_{\rm int}^{-1}(z)}
+\newcommand{\vCt}{\bm{C}_{\rm tot}(z)}
+\newcommand{\vCti}{\bm{C}_{\rm tot}^{-1}(z)}
+\newcommand{\ep}{\epsilon}
+\newcommand{\pars}{\vec{\theta}}
+\newcommand{\dev}{\mathrm{d}}
+\newcommand{\mstar}{h^{-1}M_\odot}
+\newcommand{\mrefz}{m_{i, \mathrm{ref}}}
+\newcommand{\mi}{m_{i}}
+
+
+
+%%%%%%%%%%%%%%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%%
+
+% Title of the paper, and the short title which is used in the headers.
+% Keep the title short and informative.
+\title[KiDS LRGs]{Selection of luminous red galaxies with broad-band photometry of the Kilo Degree Survey}
+
+% The list of authors, and the short list which is used in the headers.
+% If you need two or more lines of authors, add an extra line using \newauthor
+\author[M. Vakili et al.]{
+M. Vakili,$^{1}$\thanks{E-mail: vakili@mail.strw.leidenuniv.nl}
+M. Billicki,$^{1}$
+H. Hoekstra$^{1}$
+and the KiDS Collaboration$^{2}$
+\\
+% List of institutions
+$^{1}$Leiden Observatory, Leiden University, Leiden, Netherlands\\
+$^{2}$Department, Institution, Street Address, City Postal Code, Country
+}
+
+% These dates will be filled out by the publisher
+\date{Accepted XXX. Received YYY; in original form ZZZ}
+
+% Enter the current year, for the copyright statements etc.
+\pubyear{2018}
+
+% Don't change these lines
+\begin{document}
+\label{firstpage}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+\maketitle
+
+% Abstract of the paper
+\begin{abstract}
+Wide imaging surveys equipped with 
+broadband photometry allow us to a select galaxies old stellar populations with precise redshifts suitable for 
+cross-correlation studies. In this investigation, we present the selection of luminous red galaxies with 
+the multi-band photometry of the Kilo Degree Survey third data release (KiDS DR3). Using the 
+redshift information from the overlap between KiDS and spectroscopic data based on SDSS and GAMA, 
+we infer the color-magnitude relation of red sequence galaxies. We then demonstrate how the 
+inferred color-magnitude relation, along with a luminosity filter, can be used to select luminous 
+red galaxies in the redshift range of $0.1<z<0.7$ over the entire KiDS DR3  footprint. We construct two samples of galaxies with constant comoving density: a dense sample with $L/L_{\star}>0.5$ and comoving density of $10^{-3} \; h^{3}\; \mathrm{Mpc}^{-3}$, and a luminous sample with $L/L_{\star}>1$ and comoving density of $2 \times 10^{-4} \; h^{3}\; \mathrm{Mpc}^{-3}$. 
+We show that the selected LRGs have robust photometric redshifts with typical $\sigma_z \sim 0.014 (1+z)$  making them an ideal set of galaxies for galaxy-galaxy lensing studies and joint probe.
+\end{abstract}
+
+% Select between one and six entries from the list of approved keywords.
+% Don't make up new ones.
+\begin{keywords}
+\end{keywords}
+\textbf{}\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%% BODY OF PAPER %%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+The Kilo Degree Survey (KiDS) is a wide optical survey designed to map the dark matter distribution by measuring the weak gravitational lensing of galaxies (\citealt{kids}). This is done by measuring the correlation between the distortion of the shapes of distant galaxies. This correlation function is then compared to the predictions of 
+cosmological simulations to learn about the cosmological parameters (\citealt{hendrick2017,joudaki2017}). 
+
+However, the true constraining power of weak lensing studies can be unlocked through joint 
+analysis of the cosmic shear of background galaxies (known as source galaxies) and the positions of foreground lens galaxies that have known redshifts or precise and accurate photometric redshifts. This procedure, known as galaxy-galaxy lensing, can be used for tightening the lensing constraints 
+on cosmological parameters (see \citealt{elvin2017,joudaki2018,edo2018}) by mitigating the biases arising from observational and astrophysical 
+systematics. Furthermore, it can help us understand the connection between the properties of the foreground galaxies and the properties of the dark matter halos hosting them (\citealt{viola2015,edo2016,clampitt2017,dvornik2018}). 
+
+Furthermore, measurements of the intrinsic alignment of galaxies (see \citealt{hirata2004,kirk2015}) can benefit from having a sample of galaxies with known redshifts (\citealt{mandelbaum2011,singh2015,fastsound2017}) or photometric redshifts with small uncertainties (\citealt{joachimi2009,joachimi2010,joachimi2011}). Another application of a galaxy sample with robust redshifts is the calibration of the photometric redshift distributions of source galaxies in weak lensing surveys using cross correlation of the two samples (\citealt{cawthon2017,davis2017,hendrick2017,morrison2017}).
+
+ 
+In weak lensing surveys, photometric redshifts are often obtained by template fitting or machine learning techniques. Redshifts derived from template fitting are based on the assumption that galaxy fluxes computed from multi-band photometry can be expressed as a superposition of  a set of templates and some prior over the types of galaxies (\citealt{bpz1999,speagle2016,hendrick2017,hoyle2017}). Machine learning methods make use of the overlap between the imaging surveys and spectroscopic data to find the complex relation between galaxy colors and their redshifts (\citealt{masters2015,bonnet2016,kids_annz}). On the other hand, \citealt{boris2017} showed that it is possible to formulate a hybrid approach in which a spectroscopic training sample (albeit incomplete and heterogeneous) can be used to infer the set of templates and the redshifts of galaxies simultaneously.
+
+Multi-band photometry of imaging surveys makes it possible to select a sample of galaxies with old populations. At any given redshift, the distribution of these galaxies in the color magnitude diagram follows a straight line--- with some intrinsic scatter---known as the red-sequence ridge-line. Therefore, these galaxies are called the red-sequence galaxies. This distribution of the red-sequence galaxies in the color-magnitude diagram permits us to separate these galaxies from the rest of the galaxy population (\citealt{gladders_yee2000,hao2009,redmap_sdss,rozo2016}). 
+
+For a sample of red-sequence galaxies with spectroscopic redshifts, one can parametrize the redshift evolution of the red-sequence ridge-line, also known as the red-sequence template. Assuming a prior probability over the redshifts of red galaxies and a redshift-dependent distribution over the magnitudes of red galaxies, the red-sequence template can be turned into a red sequence selection algorithm. Furthermore, the redshifts of the selected galaxies can be precisely estimated. This procedure, known as $\textsc{redMagiC}$ has been successfully applied to the Sloan Digital Sky Survey and Dark Energy Survey data (\citealt{rozo2016}).
+
+Obtaining a sample of galaxies with well defined selection and precise redshifts over the entire footprint of a given galaxy survey has been proven beneficial for galaxy-galaxy lensing studies (\citealt{clampitt2017,prat2017}), galaxy clustering (\citealt{elvin2017}), and joint cosmological probes. 
+
+In this investigation, we select a set of red sequence galaxies from the overlap of the KiDS DR3 (\citealt{kids_dr3}) and the spectroscopic redshift surveys of SDSS and GAMA. These galaxies are then used to calibrate the red sequence template. We then follow the $\textsc{redMagic}$ prescription (\citealt{rozo2016}) to select the red sequence galaxies and measure their redshifts. After imposing a set of luminosity cut and constant comoving densities, we construct two samples of luminous red galaxies suitable for cross-correlation studies.  
+%For instance, joint analysis of cosmic shear signal 
+%obtained from faint background galaxies and clustering of foreground galaxies can be utilized to break the degeneracy between constraints on cosmological parameters and to gain insights into 
+%how galaxies trace the underlaying dark matter structure. 
+
+The structure of the paper is as follows. In Section~\ref{sec:methodology} we introduce the methodology used in this analysis including the selection of seed red sequence galaxies and inference of the red sequence color magnitude relation, and selection of the final LRG sample based on appropriate cuts on the estimated luminosities and the quality of red-sequence fits. The characteristics of the datasets, both photometric and spectroscopic, are described in Section~\ref{sec:data}.  
+
+We apply two luminosity ratio threshold cuts to the LRG candidates, each with a constant comoving number density. 
+We then discuss the photometric redshift performance of the two LRG catalogs by comparing the derived redshifts with spectroscopic redshifts. Furthermore, we compare the redshifts estimated in this work with ANNz redshifts. 
+We present the color and magnitude distribution of the LRG catalogs at different redshifts. Finally, we summarize and conclude in Section~\ref{sec:summary}.
+
+\section{Methodology}\label{sec:methodology}
+
+\subsection{algorithm overview}
+
+At any given redshift, red-sequence galaxies follow a narrow ridge line in the color magnitude space. Following \citealt{rozo2016}, we choose the magnitude of the reddest pass-band for describing the color magnitude relation. In the KiDS imaging data, this corresponds to the $i$-band magnitude (\citealt{kids_dr3}). This red-sequence color magnitude relation, also known as the red-sequence template, can be used to characterize the probability distribution function 
+$p(\vc|m,z)$:
+
+\begin{eqnarray}
+-2 \; \ln \; p(\vc|m,z) &=& \chi^{2}_{\rm red} + \ln \; det\big(\vCt\big) \label{eq:temp}\\ 
+\chi^{2}_{\rm red} &=& \big(\vc  - \vc_{\rm red}(z)\big)^{\rm T} \vCti \big(\vc  - \vc_{\rm red}(z)\big)  \\
+\vc_{\rm red}(z) &=& \va + \vb \big(\mi - \mrefz(z)\big) \label{eq:temp1}\\
+\vCt &=& \vCo +\vCi \label{eq:temp2}
+\end{eqnarray}
+
+The red-sequence template (given by Eqs~\ref{eq:temp1},\ref{eq:temp2}) can be fully determined from the following parameters: the intercept of the color-magnitude ridge line $\va$, the slope of the ridge line $\vb$, and the reference $i$-band magnitude $\mrefz(z)$. The choice of $\mrefz(z)$ is arbitrary and it is selected by the investigator. In the next section we will explain how this parameter is set in our analysis. Moreover, for every galaxy in the survey, $\vCt$ is the total covariance matrix and is composed of two components: the observed color covariance $\vCo$ and the intrinsic color covariance $\vCi$. 
+
+Thus, in order to determine the color-magnitude relation, we are required estimate the three dimensional vectors $\va$ and $\vb$, the scalar $\mrefz(z)$, and the 3$\times$3 intrinsic covariance matrix $\vCi$. Hereafter in this work, we ignore the off-diagonal elements of the intrinsic covariance matrix as they are sub-dominant to the off-diagonal elements of the observed color covariance and the rest of the components of the color covariance matrix.   
+
+With the redshift dependent color-magnitude relation at hand $p(\vc|m,z)$, one can estimate the redshift probability distribution function of a galaxy given a 3 dimensional color vector $\vc$ and the $i$-band magnitude $\mi$. According to Bayes' rule, this probability distribution is given by  
+
+\be
+p(z|m,\vc) \propto p(\vc|m,z)p(m|z)p(z),
+\label{eq:pzmc}
+\ee
+Note that there are two probability distributions on the left hand side of the Eq.~\ref{eq:pzmc}: the distribution of the magnitudes of red galaxies $p(m|z)$, and the prior distribution over the redshifts of red galaxies. 
+
+The magnitude distribution acts as a redshift-dependent luminosity filter and its functional form is given by the Schecter function:
+
+\be 
+p(m|z) \propto 10^{-0.4(m-m_{\star}(z))(\alpha+1)} \exp\big( -10^{-0.4(m-m_{\star}(z))}\big), 
+\label{eq:pmz}
+\ee
+where $\alpha$ is the faint-end slope of the Schecter luminosity function and $m_{\star}$ is the characteristic magnitude of the red-sequence galaxies. Following \citealt{redmap_des} and \citealt{rozo2016}, we fix the parameter $\alpha=1$, and we calculate $m_{\star}(z)$ using the \textsc{EZgal} (\citealt{ezgal_software,ezgal_paper}) implementation of Bruzual and Charlot (\citealt{bc03}) stellar population synthesis model. In the calculation of $m_{\star}(z)$ we also assume a solar metalicity, a Salpeter initial mass function (\citealt{chabrier2003}), and a single star formation burst at $z = 3$. Note that the argument of the exponential in Eq.~\ref{eq:pmz},  can be expressed in terms of luminosity ratios 
+\be 
+\frac{L}{L_{\star}} = 10^{-0.4(m-m_{\star}(z))}.
+\label{eq:lratio}
+\ee 
+
+Finally, the redshift prior takes the form of the derivative of the comoving volume with respect to the redshift. This prior imposes uniformity of the comoving density across different redshifts.  
+\begin{eqnarray}
+p(z) & \propto & \frac{dV_{com}}{dz} \label{eq:pz}\\
+\frac{dV_{com}}{dz} &=& (1+z)^{2}D_{A}^{2}(z)cH^{-1}(z),
+\end{eqnarray} 
+where $H(z)$ and $D_A(z)$ are Hubble parameter and the angular diameter distance as a function of redshift $z$ respectively. 
+
+The redshift prior takes into account the fact that for a given galaxy, the available volume is larger at higher redshifts. Therefore it ensures that the prior probability of finding a galaxy in a given redshift slice is proportional to the volume of that redshift slice. As a result, this choice of prior promotes a constant comoving density of galaxies across different redshifts. 
+
+\subsection{Seed galaxies for the estimating the red-sequence template}
+\label{sec:seed}
+Constructing a red-sequence template requires estimating the red-sequence ridge-line parameters as a function of redshift. Thus the first step is finding a set of seed red-sequence galaxies with secure spectroscopic redshifts for training the color magnitude relation. In particular, we make use of the overlap between KiDS DR3 and the spectroscopic data from the thirteenth data release of Sloan Digital Sky Survey (hereafter SDSS DR13) as well as the data obtained by the second data release of GAlaxy Mass Assembly Survey (GAMA DR2). 
+
+Creating a set of seed red galaxies is done by multiple filtering procedures in the multi-dimensional color-magnitude space, and in thin slices of redshift spanning the range $0.1<z<0.8$. The $i$-band magnitude $m_i$ and three color components $\{u-g,g-r,r-i\}$ used in our analysis are derived from  KiDS DR3 photometry and the spectroscopic redshifts $z_{\rm spec}$ are from GAMA and SDSS (see~\cref{sec:data}). 
+
+First, we divide the dataset into thin redshift slices with widths of $\Delta z = 0.02$. At each redshift slice, we fit two mixtures of Gaussian to the distribution of data points in the two dimensional space of $\{g-r,m_i\}$. One of the components of the Gaussian mixture model corresponds to the red population and the other component corresponded to the blue population. In particular, we employ the Extreme Deconvolution technique (hereafter XD, see \citealt{xd_code,xd_paper}) that finds the maximum likelihood estimate of the parameters of the mixture model in the cases where each data point has its own observed covariance matrix. That is, the XD model finds the underlying noise-deconvolved distribution of the heterogeneous dataset. In particular we make use of the $\textsc{astroml}$ implementation of XD (\citealt{astroml}).
+
+In each slice of redshift, the data points are two dimensional vectors $\mathbf{x}_{obs} = \{m_i,g-r\}$ 
+and can be written as:
+
+\be 
+\mathbf{x}_{obs} = \mathbf{x}_{mod} + \mathrm{noise},
+\label{eq:xdmod}
+\ee
+where $\mathbf{x}_{mod}$ is the model described by the mixtures of Gaussian, and the noise term is drawn from a Gaussian distribution with zero-mean and a known covariance matrix $\mathbf{S}$:
+\begin{eqnarray}
+\mathbf{S} = 
+\begin{bmatrix}
+        \sigma_{i}^2      &                0   \\
+ 0        &         \sigma_{g}^2  +   \sigma_{r}^2  \\
+ \end{bmatrix},
+ \label{eq:Sgri}
+\end{eqnarray} 
+where $\sigma_g , \sigma_r, \sigma_i$ are photometric errors derived from KiDS DR3. The model vector 
+$\mathbf{x}_{mod}$ is drawn from a mixture of Gaussian with two components:
+\be
+p(\mathbf{x}_{mod}) = \sum_{k=1}^{2} \pi_{k} \mathcal{N} \big(\mathbf{m}_{k}, \mathbf{V}_k \big),
+\ee
+where $\pi_k$, $\mathbf{m}_k$, and $\mathbf{V}_k$ are the weight, 2-d mean vector, and the 2$\times$2 covariance matrix associated with the $k$-th Gaussian component. The component with larger mean $g-r$ corresponds to the red population. Then we select the points that are best represented by the 2-d Gaussian distribution corresponding to the red population. 
+
+Let us denote the mean and the covariance of the Gaussian component associated with red galaxies by $\mathbf{m}_r$ and $\mathbf{V}_r$ respectively. The first and the second components of $\mathbf{m}_r$ correspond to $m_i$ and $g-r$ respectively. Note that an initial estimate of the red-sequence ridge-line in the $\{m_i, g-r\}$ space can be found from $\mathbf{m}_r$ and $\mathbf{V}_r$:
+
+\be 
+(g-r)_{mod} = \mathbf{m}_{r,2} + \mathbf{V}_{r,1,2}\big((m_i)_{mod} - \mathbf{m}_{r,1}\big)/\mathbf{V}_{r,1,1},
+\label{eq:init_line}
+\ee
+where $\mathbf{m}_{r,i}$ and $\mathbf{V}_{r,i,j}$ denote the $i$-th component of $\mathbf{m}_{r}$ and the $i,j$-th component of $\mathbf{V}_{r}$ respectively. Furthermore, the scatter $\sigma^{2}_{mod}$ around this line can be defined in the following way:
+\be 
+\sigma^{2}_{mod} = \mathbf{V}_{r,2,2} - \mathbf{V}^{2}_{r,1,2}/\mathbf{V}_{r,1,1}.
+\label{eq:init_scatter}
+\ee 
+
+Combining Eqs.(\ref{eq:init_line},\ref{eq:init_scatter}) allow us to select data points in the $\{m_i,g-r\}$ space that are one sigma away from the initial estimate of the ridge-line. In other words, we keep the points that satisfy the following criteria
+\be 
+\big((g-r)_{obs} - (g-r)_{mod} \big)^{2} / (\sigma^{2}_{mod} + \mathbf{S}_{2,2}) < 2,
+\label{eq:chitwo}
+\ee 
+where $(g-r)_{obs}$ is the observed color, and $\mathbf{S}_{2,2}$, $(g-r)_{mod}$, and $\sigma^{2}_{mod}$ are given by Eqs.~(\ref{eq:Sgri},\ref{eq:init_line},\ref{eq:init_scatter}) respectively. Galaxies that meet this criteria~(\ref{eq:chitwo}) form an initial set of seed for estimating the parameters of the red-sequence template. 
+
+Prior to estimating the red-sequence template parameters, we employ a second filtering step. This is done in the three dimensional color space $\{u-g,g-r,r-i\}$. 
+Within narrow redshift intervals, red-sequence galaxies are clustered in a narrow volume in the color space. If there exists a set of galaxies that do not belong to the red population, we can remove these outliers by fitting two mixtures of Gaussians to the distribution of the remaining galaxies in the three dimensional color space. 
+
+In this case, the observed data are three dimensional vectors $\mathbf{y}_{obs} = \{u-g,g-r,r-i\}$, with observed uncertainties with zero mean and a known covariance $\tilde{\mathbf{S}}$:
+\begin{eqnarray}
+\tilde{\mathbf{S}} = 
+\begin{bmatrix}
+        \sigma_{u}^2 + \sigma_{g}^2      &    -\sigma_{g}^2    &         0   \\
+ -\sigma_{g}^2       &         \sigma_{g}^2  +   \sigma_{r}^2 & -\sigma_{r}^2  \\
+ 0 & -\sigma_{r}^2 & \sigma_{r}^2  +   \sigma_{i}^2 \\
+ \end{bmatrix}.
+ \label{eq:Sugri}
+\end{eqnarray} 
+Once again we fit a XD model with two mixtures to the distribution of the data in the color space:
+\be
+p(\mathbf{y}_{mod}) = \sum_{k=1}^{2} \tilde{\pi}_{k} \mathcal{N} \big(\tilde{\mathbf{m}}_{k}, \tilde{\mathbf{V}}_k \big),
+\ee
+where $\tilde{\pi}_k$, $\tilde{\mathbf{m}}_k$, and $\tilde{\mathbf{V}}_k$ are the weight, 3-d mean vector, and the 3$\times$3 covariance matrix associated with the $k$-th Gaussian component. 
+
+Afterwards, we apply a cut based on the inferred mean vectors of the Gaussian distributions. The mean of the Gaussian component capturing the outliers has a lower mean along the $r-i$ axis. We denote the mean and the covariance of the Gaussian component with a higher mean along the $r-i$ axis, $\tilde{\mathbf{m}}_{r}$ and $\tilde{\mathbf{V}}_{r}$ respectively. Finally, we select those galaxies that, in the color space, are within one sigma from the mean of the Gaussian component corresponding to the red population. That is, galaxies must meet the following criteria in order to be considered in the seed for training the template model:
+\be 
+\big(\mathbf{y}_{obs} - \tilde{\mathbf{m}}_{r} \big)^{T}\big(\tilde{\mathbf{S}}+\tilde{\mathbf{V}}_r\big)^{-1}\big(\mathbf{y}_{obs} - \tilde{\mathbf{m}}_{r}\big) < 2
+\label{eq:chithree}
+\ee
+
+The conditions~(\ref{eq:chitwo},\ref{eq:chithree}) ensure that only the galaxies in the core of the red-sequence population of galaxies are selected as seeds for inferring the color magnitude relation.
+
+\subsection{red-sequence template}
+
+Now we discuss estimating the parameters of the red-sequence template~(\ref{eq:temp}) with the seed galaxies. The template is fully specified by the parameters $\va,\vb,\vCi$ as well as the reference $i$-band magnitude $m_{i,ref}(z)$. 
+
+The choice of $m_{i,ref}(z)$ depends on the investigator. 
+We choose to estimate the parameter $m_{i,ref}(z)$ from Cubic Spline interpolation of a set of $m_{i,ref}$ parameters at some spline nodes uniformly distributed between $=0.1$ and $z=0.8$. The spline nodes are chosen to be the midpoints in the redshift intervals that were used to select the seed red galaxies. We also select $\mathbf{m}_{r,1}$ as our choice of $m_{i,ref}$ at the spline nodes.
+
+Moreover, we also choose to parametrize $\va$, $\vb$, $\vCi$ by specifying discrete spline nodes at different redshifts. We note that the only parameter that varies significantly in short redshift intervals is $\va$. 
+Thus for $\va$ we choose Spline nodes with spacing of $\Delta z = 0.05$ uniformly 
+distributed between $z=0.1$ and $z=0.8$. For $\vb$ and $\vCi$ however, wider spacings for the spline nodes are chosen (see~\citealt{redmap_sdss}). In our work, spacing of $\Delta z = 0.1$ and $\Delta z = 0.14$ are chosen for the spline nodes at which we parametrize $\vb$ and $\vCi$. 
+
+Furthermore, as discussed earlier, we decide to ignore the off-diagonal elements of the intrinsic covariance matrix. 
+Therefore, there are three parameters at every intrinsic invariance Spline node, three parameters at every slope Spline node, an three parameter at every intercept Spline node. We denote the multi-dimensional vector representing these parameters as $\bm{\theta}$. $\bm{\theta}$ can be estimated by minimizing the objective function:
+\be 
+\mathcal{O}(\bm{\theta}) = -2\sum_{j=1}^{N_{gal}} \ln \; p(\vc_j|m_j,z_j;\bm{\theta}), 
+\label{eq:otheta}
+\ee 
+where the summation is over all seed galaxies and the conditional probability $p(\vc_j|m_j,z_j;\bm{\theta})$ for $j$-th galaxy is evaluated using the Equation~\ref{eq:temp}. Minimization of~\ref{eq:otheta} is done by $\mathtt{scipy}$ implementation of the $\mathtt{BFGS}$ algorithm. 
+
+\subsection{initial redshift estimation}
+
+Selection is done by first evaluating the probability distribution function 
+$p(z|m,\vc)$ (see eq.~\ref{eq:pzmc}) for each galaxy in the KiDS catalog. Given the red-sequence template~\ref{eq:temp}, the magnitude distributions~\ref{eq:pmz}, and redshift priors~\ref{eq:pz},
+one can optimize $p(z|m,\vc)$ to obtain a maximum a posteriori estimate $\hat{z}$ of the redsequence redshift of galaxies. In practice, we use the $\mathtt{scipy}$ implementation of $\mathtt{BFGS}$ optimizer (cite BFGS) to minimize the following objective function:
+
+\begin{eqnarray} 
+-2\ln \; p(z|m,\vc) &=& \chi^{2}_{\rm red}(z) + \ln\; det\big(\vCt\big) \nonumber \\  
+                    &-& 2 \ln \; |\frac{dV}{dz}|-2\ln\;p(m|z) 
+\end{eqnarray} 
+Therefore, an estimate of redshift can be found according to
+\be 
+\hat{z} = \mathrm{argmin}_{z} \; \big[-2\ln \; p(z|m,\vc)\big].
+\label{eq:minim}
+\ee
+
+\subsection{selection criteria}
+Once we have an estimate of the redshifts of LRG candidates, we can apply appropriate 
+cuts to the catalog to obtain a sample of luminous redsequence galaxies. LRG candidates need 
+to meet two criteria in order to pass the cuts. First, we apply a cut based on the maximum redsequence chi-squared $\chi^{2}_{\rm red}({\hat{z}})$ achieved by minimizing the objective function~(\ref{eq:minim}). That is, at a given redshift, if $\chi^{2}_{\rm red}({\hat{z}})$ is less than a specified maximum allowable chi-squared $\chi^{2}_{\rm max}(z)$, the LRG candidate passes the chi-squared  criterion. We will postpone discussion of estimating $\chi^{2}_{\rm max}(z)$ to Section~\ref{sec:chimax}.
+
+The chi-squared criteria ensures that the selected galaxies belong to the redsequence population. As we are mainly interested in the luminous red galaxies, we impose another condition that selects galaxies more luminous than a certain ratio. At a given redshift, we can use the ratio $l = L/L_{\star}$ (~\ref{eq:lratio}) to select galaxies with luminosities larger than or equal to $qL_{\star}$. 
+
+As we will discuss later in section~\ref{sec:chimax}, we will construct two sample: a high density sample with $q=0.5$ and a luminous sample with $q=1$. 
+
+\subsection{photo-z afterburner}\label{sec:afterburner}
+
+If there exist a set of LRG candidates with a secure spectroscopic redshift, these redshifts can be used to calibrate the photometric redshifts obtained by our method. In practice, we only make use of a subset of LRG candidates with spectroscopic redshifts and we leave the rest for validation. 
+
+We assume that calibration can be parametrized by a redshift offset parameter $\delta z$ which is a smooth function of the redshift. $\delta z = \delta z(\hat{z})$. In order to estimate $\delta z(\hat{z})$
+we choose a set of five spline nodes $\{z_i\}_{i=1}^{5}$ uniformly spaced between $z=0.1$ and $z=0.8$. Then the task of estimating $\delta z$ is reduced to the task of estimating $\delta z (z_i)$ for $i=1,...,5$.
+
+In order to estimate $\delta z(z_i)$, we construct the following objective function:
+
+\be 
+E\big(\{\delta z_i\}\big) = \sum_{z_{spec}} |z_{spec} - \delta z(\hat{z}) - \hat{z}|,
+\label{eq:lcalib}
+\ee 
+where the summation is over spectroscopic redshifts of galaxies in the calibration sample. 
+
+Note that in~(\ref{eq:lcalib}) we have used an $L_1$ norm for the objective function $E$. The motivation for our choice of $L_1$ norm is that this norm is more robust against outliers. If there is a fraction of galaxies with biased estimates of the red-sequence redshifts, they could bias our estimate of $\delta z(z)$. A conventional $L_2$ norm in the objective function $E$ can be sensitive to these outliers. Therefore, in order to reduce the sensitivity of our redshift calibration method to outliers we use an $L_1$ norm instead. 
+
+As we point our in section~\ref{sec:chimax}, this redshift calibration scheme is done within the $\chi_{max}^{2}(z)$ calibration. This is due to the fact that both luminosity ratios $l(z)$ and the red-sequence chi-squared values $\chi^{2}_{\rm red}(z)$ of LRG candidates depend on their redshift estimates. 
+After every redshift calibration ($\hat{z} \rightarrow \hat{z} + \delta z(\hat{z})$), the values of $l(\hat{z})$ and $\chi^{2}_{\rm red}(\hat{z})$ need to be updated as well. For this reason, the entire photo-z afterburner operation need to be performed within calibration of the maximum allowable $\chi_{\rm red}(z)$ which we will explain shortly. We also remind the reader that only a subset of LRG candidates with spectroscopic redshifts are used for this purpose. The rest of the LRG candidates are used for the validation of our method. 
+
+\subsection{calibration of redsequence chi-squared}\label{sec:chimax}
+
+We estimate the redshift-dependent maximum permitted $\chi^{2}_{\rm red}$ by requiring the final LRG sample to have nearly constant comoving density across cosmic time. In other words, we require the number of LRGs to be proportional to the comoving volume available for them.
+
+This can be done by counting the number of LRG candidates in narrow bins of redshift and then comparing it with what we would expect from a constant comoving density. 
+
+Let us denote the fraction of sky covered by the survey by $f_{s}$. Then for a given comoving number density $\bar{n}$, the expected number of LRGs in a redshift interval $\Delta z_j$ centered on redshift $z_j$ is 
+\be 
+N_j \simeq \bar{n}f_s\frac{dV_c}{dz}(z_j)\Delta z_j,
+\label{eq:nj}
+\ee
+where $\frac{dV_c}{dz}(z_j)$ is the derivative of the comoving volume with respect to redshift evaluated at $z_j$. Let us denote the number of LRG candidates at the redshift interval $\Delta z_j$ by $H_j$. Given a specified minimum luminosity ratio $l=L/L_{\star}$, the number count $H_j$ depends on the number of galaxies that pass the requirement $\chi^{2}_{red}(z_j) < \chi^{2}_{max}(z_j)$. 
+
+As a result, one needs to adjust the values of $\chi^{2}_{max}(z_j)$ such that for a given choice of luminosity ratio, $H_j$ matches the prediction based on constant comoving number density $N_j$~(\ref{eq:nj}). We choose to model $\chi^{2}_{max}$ as a smooth function of redshift. Thus, we choose to parametrize it by selecting a few Spline nodes $z_{k}$ uniformly spaced between $z=0.1$ and $z=0.8$, and then interpolating the values of $\chi^{2}_{max}(z_k)$ to a given redshift $z_j$ using $\mathtt{CubicSpline}$ interpolation.
+
+We estimate the set of parameters $\chi^{2}_{max}(z_k)$ by minimizing the following objective function:
+
+\be 
+\mathcal{O}\big(\{\chi^{2}_{max}(z_k)\}\big) = \sum_j \; \frac{(H_j-N_j)^{2}}{(H_j + N_j)},
+\label{eq:hist}
+\ee
+where the denominator is simply given by the Poisson noise calculated from the galaxy number counts $H_j$ and the expected number counts assuming constant density $N_j$. Note that in evaluation of~\ref{eq:hist} we use a more fine binning than the Spline nodes at which we parametrize $\chi^{2}_{max}$. 
+
+In section~\ref{sec:afterburner} we discussed our strategy for estimating the calibration errors as a 
+function of redshift. Estimating $\chi^{2}_{max}(z)$ through iterative minimization of the objective function~(\ref{eq:hist}) is based on the assumption that the redshifts are calibrated since the both $L/L_{\star}$ and $\chi^{2}_{red}(z)$ are modified after calibration of redshifts. Therefore, before evaluating the objective function $\mathcal{O}\big(\{\chi^{2}_{max}(z_k)\}\big)$ at each iteration, the afterburner procedure is performed, and the luminosity ratios $L/L_{\star}$ and the red-sequence chi-squared values $\chi^{2}_{max}$ are updated for all the galaxies in the survey. Afterwards, given a choice of luminosity ratio and the $\chi^{2}_{max}(z_k)$, the objective function~(\ref{eq:hist}) is evaluated. 
+
+\section{Data}\label{sec:data}
+Now that we have explained our algorithm for selecting the LRGs, we provide a brief description of the datasets 
+used in this analysis. 
+\subsection{KiDS photometric data}\label{sec:kids}
+%%%%% mostly shamelessly copied from maciek's paper for now%%
+The Kilo-degree Survey (KiDS, \citealt{kids}) is a wide 
+imaging survey conducted with the OmegaCAM camera (\citealt{omegacam}) on the VLT telescope \citealt{vlt}, using four broad-band filters ($ugri$). The target area of KiDS is approximately 1500 $deg^{2}$ in two regions, one on the celestial equator and the other one in the south galactic cap. The main science goal of the survey is mapping the large scale structure through weak lensing measurements to test cosmological models (\citealt{hendrick2017,joudaki2017,joudaki2018,edo2018}).
+
+The latest data release of KiDS is the third data release (\citealt{kids_dr3}) which includes $\approx$ 450 $deg^{2}$ of the sky with typical 5$\sigma$ depth of 24.3, 25.1, 24.9, 23.8 in $2^{"}$ apertures in $ugri$ respectively. The details of the KiDS data reduction can be found in the relevant data release paper (\citealt{kids_dr3}). 
+
+KiDS data reduction also involves a post-processing stage in which Gaussian Aperture and Photometry (GAaP,~\citealt{gaap}) magnitudes are derived (\citealt{kuijken2015}). For this, the coadd images are first Gaussianized, meaning that the point spread function (PSF) is homogenized across each individual coadd. The photometry is then measured using a Gaussian-weighted aperture (the size and shape of which are set by the r-band major and minor axis lengths and orientation) that compensates for the seeing differences between the filters because each part of the source gets the same weight across all filters. This procedure provides a set of magnitudes for all filters. 
+
+
+Additional ``photometric homogenization'' is achieved by adjusting the zeropoints across the full survey area. This is done using the coadd overlaps in the $r$ and $u$ bands, homogenizing the photometry in these two filters. Afterwards, the $g$ and the $i$ bands are tied to the $r$ band using stellar locus regression, which homogenizes the $g − r$ and $r − i$ colors, and therefore the $g$ and the $i$ band zeropoints are adjusted.
+
+The photometric homogenization is done using the GAaP photometry, and in the final catalogs the resulting zeropoint offsets for each band (denoted by $\mathtt{ZPT}_{-}\mathtt{offset}_{-}\mathtt{band}$) are reported
+in separate columns, together with Galactic extinction corrections (denoted by $\mathtt{EXT}_{-}\mathtt{SFD}_{-}\mathtt{band}$) which are based on the \citealt{schlegel98} maps. The zeropoint-calibrated and extinction-corrected magnitudes are denoted as $\; \mathtt{Mag}_{-}\mathtt{type}_{-}\mathtt{band}_{-}\mathtt{calib}$:
+
+\begin{eqnarray}
+\mathtt{Mag}_{-}\mathtt{type}_{-}\mathtt{band}_{-}\mathtt{calib} =  \nonumber\\
+\mathtt{Mag}_{-}\mathtt{type}_{-}\mathtt{band} + \mathtt{ZPT}_{-}\mathtt{offset}_{-}\mathtt{band} - \mathtt{EXT}_{-}\mathtt{SFD}_{-}\mathtt{band}, 
+\end{eqnarray}
+where the uncalibrated magnitude measurements (denoted by $\mathtt{Mag}_{-}\mathtt{type}_{-}\mathtt{band}$) are directly taken from the KiDS multiband catalog.  
+\todo{fix this part. we are no longer using gaap magnitudes}
+
+
+Since the zeropoints are derived using the GAaP photometry, we use the magnitudes derived from GAap photometry as our choice of $\mathtt{Mag}_{-}\mathtt{type}_{-}\mathtt{band}$. Magnitudes based on GAaP magnitude are the default magnitudes in KiDS and are used in most scientific analyses. These magnitudes are used in deriving the $\mathtt{BPZ}$ photometric redshifts of weak lensing source galaxies (\citealt{kuijken2015}). Furthermore, \citealt{kids_annz} demonstrate that the machine learning redshifts derived from GAaP photometry have better quality than the redshifts derived from other types of photometry. For the rest of this paper, we work with the calibrated GAaP magnitudes and colors and we refer the readers to \citealt{kuijken2015} and \citealt{kids_dr3} for a more detailed discussion about this subject.
+
+Furthermore, the photometric catalog is cleaned by requiring that the magnitude errors are provided in each band, and by removing the artifacts corresponding to any of the following masking flags: readout spike, saturation core, diffraction spike, secondary halo, or bad pixels, following \citealt{kids_dr3, radovich2017}. We also construct a fiducial sample that does not contain catalog objects that are classified as stars by applying the cut $\mathtt{SG2DPHOT}=0$. Note that $\mathtt{SG2DPHOT}$ is a KiDS star/galaxy classifier based on the $r$ band morphology. This catalog entry is 0 for extended objects.
+
+
+
+
+
+
+
+\subsection{Spectroscopic data}\label{sec:spec}
+
+In this work, we have make use of the overlap between the KiDS catalog and some spectroscopic datasets for two purposes. First, we need need a set of galaxies in the KiDS catalog with spectroscopic redshifts that can be used as seeds for estimating the parameters of the red-sequence template $p(\vc|m,z)$. This procedure is explained in detail in~\ref{sec:seed} and it is applied to the overlap between the KiDS photometry and spectroscopic catalogs of galaxies in GAMA (\citealt{driver2011}) and SDSS DR13 (\citealt{sdss_dr13}). Later, for testing the performance of the redshifts estimated for the selected LRGs in section~\ref{sec:performance} we make use of the overlap between KiDS and the spectroscopic redshifts from SDSS, GAMA, as well as 2dfLenS (\citealt{blake2016}).
+In what follows in the rest of this section, we provide a brief description of these spectroscopic catalogs.
+\subsubsection{GAMA}
+Galaxy And Mass Assembly (GAMA,~\citealt{driver2011}) is a spectroscopic survey  which employed the AAOmega spectrograph on the Anglo-Australian Telescope,
+with targets selected mostly from the Sloan Digital Sky Survey
+(SDSS), as well as from other surveys, including KiDS. It spans
+3 equatorial fields (G09, G12 and G15) and two southern ones
+(G02 and G23) of which only G02 is outside the KiDS footprint. 
+The magnitude limited sample of GAMA is nearly 
+complete down to $r=19.8$ mag for SDSS galaxies in the equatorial fields and down to $i=19.2$ mag for KiDS galaxies in the G23 region (\citealt{likse2015}).  
+The GAMA spectra in four fields amount to a total of $\sim$230000 KiDS sources with good spectroscopic redshift with $\langle z \rangle = 0.23$. 
+
+\subsubsection{SDSS}
+
+The Sloan Digital Sky Survey (SDSS, \citealt{york2000}) is a photometric and spectroscopic survey of 14555 deg$^2$ of the sky encompassing more than one third of the celestial sphere using the dedicated 2.5-m telescope (\citealt{gunn2006}). In particular, we make use of the spectroscopic dataset in the Data Release 13 (DR13, \citealt{sdss_dr13}) of the SDSS-V project. We only use the sources with class `GALAXY'. 
+
+SDSS overlaps with KiDS in the equatorial fields above $\delta =-3$. This leaves us with $\sim$57000 SDSS galaxies with KiDS photometry. However those with $r<19.8$ are included in GAMA. After removing the galaxies included in the GAMA spectroscopic dataset, we are left with nearly 43000 unique SDSS galaxies with KiDS photometry. 
+
+The SDSS-matched KiDS galaxies (after removing the overlap with GAMA) span a higher range of redshifts than the GAMA-matched KiDS galaxies. Furthermore, this sample of galaxies mostly encompasses LRGs that are observed in the Oscillation Spectroscopic Survey (BOSS, \citealt{dawson2013}) and the extended BOSS (eBOSS, \citealt{dawson2016}). This makes them ideal candidates for seed galaxies needed for estimating the red-sequence template as we seek to select galaxies that populate the volume of the color space.
+
+\subsubsection{2dfLenS}
+
+The 2-degree Field Lensing Survey (2dFLenS, \citealt{blake2016}) is a spectroscopic survey performed at the Australian Astronomical Observatory covering an area of 731 deg$^2$. By expanding the overlap with the KiDS field in the southern galactic cap, this survey aims to provide a dataset suitable for joint clustering and lensing analyses (\citealt{amon2017,joudaki2018}), photometric redshift estimation (\citealt{kids_annz}), photo-z calibration (\citealt{johnson2017,wolf2017}), and lensing systematic tests (\citealt{amon2018}).
+
+In KiDS DR3 there is nearly 12000 galaxies with 2dFLenS spectra. After excluding the galaxies in common with GAMA and SDSS, we have $~\sim $9000 unique 2dfLenS galaxies with KiDS photometry. 
+
+
+
+%\section{Results}
+
+
+%\section{Photo-z performance}
+%\clearpage 
+
+\section{result}
+\subsection{selection summary}
+
+As our final selection step, we decide to construct two samples, with minimum $L/L_{\star}$ 
+ratios of 0.5 and 1. Furthermore, in the $\chi^{2}_{max}(z)$ calibration, 
+we choose to keep the comoving density of each sample fixed. We call these two sample the $\mathtt{dense}$ sample and the $\mathtt{luminous}$ sample. The $\mathtt{dense}$ sample has a mean comoving density of $10^{-3}\;h^{3}\mathrm{Mpc}^{-3}$ and a minimum $L/L_{\star}$ of 0.5. On the other hand, the $\mathtt{luminous}$ sample has a mean comoving density of $2\times10^{-4}\;h^{3}\mathrm{Mpc}^{-3}$ and a minimum $L/L_{\star}$ of 1. The estimated maximum red-sequence chi-squared for the two samples are shown in Figure \ref{fig:chi}.  
+
+%%%%%%%%%%%%%%%%%%TABLES%%%%%%%%%%%%
+
+\begin{table}
+	\centering
+	\caption{{\bf LRG sample selection summary }: The LRG sample and their corresponding luminosity thresholds and comoving number densities. The density parameters are in unit of $h^{3}\;\mathrm{Mpc}^{-3}$. The redshift range of both samples is:$z \in [0.1,0.7]$.}
+	\label{tab:prior}
+	\begin{tabular}{lcccr} % four columns, alignment for each
+		\hline
+		LRG Sample & $L_{\rm min}/L_{\star}$ & number density & total number\\
+		\hline
+		$\mathtt{dense}$ & 0.5 & $10^{-3}$ & 190203\\
+		$\mathtt{luminous}$ & 1 & $2\times 10^{-4}$ & 38692\\
+		\hline
+	\end{tabular}
+\end{table}
+
+Figure~\ref{fig:dndz} shows the comparison between the redshift distribution of our selected galaxies and the expected distribution based on the assumption of constant comoving density. We note that in general there is a good agreement between the two distributions for both galaxy samples. Also shown in Figure~\ref{fig:dndz} is the redshift distribution of selected LRGs that have spectroscopic redshifts. The number of selected LRGs at higher redshifts is significantly higher than the LRGs with secure spectroscopy. This demonstrates how the method presented in this work can exploit the information available in the red-sequence template in order to select a sample of galaxies in a wide range of redshifts. 
+
+Moreover, we note that the distribution of the selected galaxies in the magnitude space is more inclined towards fainter galaxies. This is shown in Figure~\ref{fig:miz}. In both $\mathtt{dense}$ and $\mathtt{luminous}$ samples, there exist more galaxies at higher redshifts and higher $i$-band magnitudes. Figure~\ref{fig:miz} shows contours containing 68\%,95\%, and 99\% of galaxies in the two dimensional space of $z_{red}$ and $m_i$. The blue contours show the distribution of all selected LRGs and the yellow contours show the distribution of LRGs with spectroscopy. The magnitude distribution of galaxies in the $\mathtt{luminous}$ sample has a greater match with those galaxies in the sample with spectroscopic redshifts.  
+
+\subsection{Photo-z performance}\label{sec:performance}
+
+In order to asses the quality of the estimated photo-z's 
+for the selected LRGs we make use of two quantities in bins of photometric redshift. The first quantity is the median bias $\delta z = z_{phot} - z_{spec}$ in bins of redshifts. The second quantity is the scatter which can be estimated via: $(i)$ 68\% variance of $(z_{phot} - z_{spec})/(1+z_{phot})$ within redshift bins or $(ii)$ the median absolute deviation (MAD) of $(z_{phot} - z_{spec})/(1+z_{phot})$ within bins of redshift. 
+
+We calculate the bias and scatter for the galaxies in the two samples that have spectroscopy. Figure~\ref{fig:bias_scatter} shows $\delta z$, $\sigma_{68}$, and $SMAD$ for galaxies in the $\mathtt{dense}$ sample (left) and galaxies in the $\mathtt{luminous}$ sample.
+
+\subsection{Understanding the origin of outliers}
+
+We turn our attention to the redshift outliers in the sample of selected LRGs with spectroscopic redshift. In particular, a galaxy is labeled as an outlier if its  absolute value of $z_{phot} - z_{s}$ is more than 5$\sigma$ away from the mean of the distribution of $z_{phot}-z_{s}$ at a given redshift. Additionally, we also looked at another convention for determining the redshift outliers. According to the second convention, a galaxy is labeled as outlier if its absolute value of $(z_{phot}-z_{s})/(1+z_{s})$ is 5$\sigma$ away from the mean of the observed distribution of $(z_{phot}-z_{s})/(1+z_{s})$ at a given redshift. 
+
+Figure~\ref{fig:outlier} shows the outlier rate of the two LRG samples in bins of photometric redshifts. In each panel the blue points correspond to the first definition and the yellow points correspond to the second definition of outlier fraction. We note that the results based on the two definitions are somewhat consistent with the first definition reporting a slightly higher outlier fraction than the second one. 
+
+For the $\mathtt{dense}$ sample, the mean outlier rate is $3.1\times 10^{-3}$ according to the first definition and $2.6\times 10^{-3}$ according to the second definition. For the $\mathtt{luminous}$, the mean outlier rate is $2.2\times 10^{-3}$ according to the first definition and $1.9\times 10^{-3}$ according to the second definition.
+We note that the observed 5$\sigma$ outlier fraction in the $\mathtt{luminous}$ sample is generally lower than the observed fraction in the $\mathtt{dense}$ sample. This is in agreement with our intuition that the higher luminosity galaxies on red-sequence ridge line can be identified with more certainty. As a result the outlier rate is always lower in the $\mathtt{luminous}$ sample. 
+
+Now that we have quantified the the rate of $5\sigma$ redshift outliers in our sample, we discuss the trends we observe in the outlier fractions and their possible origin. The outlier rates quantified in Figure~\ref{fig:outlier} and qualitatively shown in Figure~\ref{fig:sigma} suggest that there are roughly four clusters of outliers around four small redshift intervals. There are three populations of bias-low redshift outliers at $z\sim 0.2$, $z\sim 0.3$ and $z\sim 0.6$. There appears to be a cluster of bias-high outliers at $z\sim 0.45$.     
+
+
+\clearpage
+
+\section{Summary}\label{sec:summary}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure: SKY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}
+%\begin{center}
+\includegraphics[width=\textwidth]{figures/sky_lmin_0_5.png}
+\caption{\label{fig:sky} Distribution of the \texttt{dense} LRG sample with $L/L_{\star}>0.5$ in the patch in the Southern galactic cap covered by KiDS DR3.}
+%\end{center}
+\end{figure*}
+
+
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/nzdense.png}
+\includegraphics[width=\columnwidth]{figures/nzlum.png}
+\end{tabular}
+\caption{\label{fig:dndz} Demonstration of the redshift distribution of the photometrically selected luminous red galaxies based on the \textsc{redMaGiC} method. Left: Comparison between the distribution of galaxies in the $\texttt{dense}$ sample (blue histogram) and the galaxies in the $\texttt{dense}$ sample with secure spectroscopic redshifts. The green curve shows the expected distribution assuming constant comving density of $n = 10^{-3} \; h^{3}\;\mathrm{Mpc}^{-3}$. Right: same as the left panel but for the selected LRGs in the $\texttt{luminous}$ sample, with the green showing the expected redshift distribution assuming constant comving density of $n = 2 \times 10^{-4} \; h^{3}\;\mathrm{Mpc}^{-3}$. Note that overall there is a fairly good agreement between the redshift distribution of the selected LRGs in both samples and the expected distributions based on the assumption of constant comoving density.}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/scatter_dense.png}
+\includegraphics[width=\columnwidth]{figures/scatter_luminous.png}
+\end{tabular}
+\caption{\label{fig:sigma} Demonstration of bias and scatter of the estimated redshifts of the selected LRGs in the $\mathtt{dense}$ sample (Left Panel) and in the $\mathtt{luminous}$ sample (Right Panel). The scatter is showed by two quantities: the standard median absolute deviation (shown in yellow) and the 68 percent scatter (shown in blue) of $(z_{red}-z_{spec})/(1+z_red)$. The bias ($\delta z = z_{red} - z_{spec}$) is calculated in discrete redshift intervals. We note that the scatter is nearly constant as a function of redshift and its mean value is approximately 0.01. Moreover, the bias is always smaller than the predicted scatter. Small jumps in the estimated scatter are consistent with the redshift ranges in which transition of the 4000 Angstrom break between the broad-band filters happens.}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/zspec_zdense.png}
+\includegraphics[width=\columnwidth]{figures/zspec_zlum.png}
+\end{tabular}
+\caption{\label{fig:bias_scatter} Demonstration of bias and scatter of the estimated redshifts of the selected LRGs in the $\mathtt{dense}$ sample (Left Panel) and in the $\mathtt{luminous}$ sample (Right Panel). The scatter is showed by two quantities: the standard median absolute deviation (shown in yellow) and the 68 percent scatter (shown in blue) of $(z_{red}-z_{spec})/(1+z_red)$. The bias ($\delta z = z_{red} - z_{spec}$) is calculated in discrete redshift intervals. We note that the scatter is nearly constant as a function of redshift and its mean value is approximately 0.01. Moreover, the bias is always smaller than the predicted scatter. Small jumps in the estimated scatter are consistent with the redshift ranges in which transition of the 4000 Angstrom break between the broad-band filters happens.}
+\end{figure*}
+
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/mispec_vs_midense.png}
+\includegraphics[width=\columnwidth]{figures/mispec_vs_milum.png}
+\end{tabular}
+\caption{\label{fig:miz} Distribution of LRGs in the two dimensional space of the $i$-band magnitude $m_i$ and redshift $z_red$. Shown are contours containing 68\%, 95\%, and 99\% of all selected LRGs (blue) and LRGs with secure spectroscopic redshift (yellow). The distribution of galaxies in the $\mathtt{dense}$and in the $\mathtt{luminous}$ samples are shown in the Left and Right Panels respectively. We note that in terms of magnitude distribution, galaxies in the $\mathtt{luminous}$ sample have a more representative sample of spectroscopic counterparts.}
+\end{figure*}
+
+
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=0.33\textwidth]{figures/spec_2dflens.png}
+\includegraphics[width=0.33\textwidth]{figures/spec_vs_dense.png}
+\includegraphics[width=0.33\textwidth]{figures/spec_vs_lum.png}
+
+\end{tabular}
+\caption{\label{fig:color} Left Panel: The redshift evolution of the colors and $i$-band magnitudes of galaxies with spectroscopic redshifts (blue points) used in this study and that of the 2dfLenS galaxies (yellow points). Shown from Top to Bottom are the redshift evolution of $u-g$, $g-r$, $r-i$ colors and the $i$ band magnitude $m_i$. Middle Panel: Same as the Right Panel with the exception that the overlaid yellow points are the galaxies in $\mathtt{dense}$ sample. Right Panel: same as the Middle Panel but with the yellow points showing the galaxies in the $\mathtt{luminous}$ sample.}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/chi_0_5.png}
+\includegraphics[width=\columnwidth]{figures/chi_1_0.png}
+\end{tabular}
+\caption{\label{fig:chi} Left: The estimated value of the maximum allowable red-sequence chi-squared at the Spline nodes. This values are estimated for the $\mathtt{dense}$ sample. Right: same as the left panel but showing the estimated $\chi^{2}_{\rm max}$ values for the galaxies in the $\mathtt{luminous}$ sample.}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/red_vs_ann.png}
+\includegraphics[width=\columnwidth]{figures/red_vs_ann2.png}
+\end{tabular}
+\caption{\label{fig:pdfpower} Comparison between the photometric redshift performances of the method presented in this work (shown in yellow) and ANNz2 (shown in blue) for the galaxies in $\mathtt{dense}$ sample (Right panel) and for the galaxies in the $\mathtt{luminous}$ sample (Left Panel). Scatter is estimated by calculating the median absolute deviation of the quantity $(z_{phot}-z_{spec})/(1+z_{phot})$ and is shown by solid lines in both panels. Bias $\delta z = z_{phot} - z_{spec}$ is shown with yellow points corresponding to $z_{red}$ and blue points corresponding to $z_{\rm ANNz}$. We note that the estimated scatters from the two methods are very similar. Moreover, the typical value of the ANNz2 redshift scatter estimated for LRGs is $\approx$0.5 times smaller than the ANNz2 redshift scatter for all galaxies (see \citealt{kids_annz}). For galaxies in the luminous sample, the ANNz2 and the redMaGiC scatters are nearly identical. However, we note that the photometric redshift biases arising from the redMaGiC method are lower than the biases from the ANNz2 method.}
+\end{figure*}
+
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/lum_color_before.png}
+\includegraphics[width=\columnwidth]{figures/lum_color_after.png}
+\end{tabular}
+\caption{\label{fig:color_lum} 68\% and 95\% of galaxy density contours in the $g-r$ and $r-i$ space for galaxies in the $\mathtt{luminous}$ sample for different redshift bins. From bottom to top the redshift bins correspond to $z=0.16,0.21,0.26,0.31,0.36,0.41,0.46,0.51,0.56,0.61,0.67$ respectively. Left: yellow contours show the galaxy densities for the entire $\mathtt{luminous}$ and the blue contours correspond to the galaxies in the $\mathtt{luminous}$ sample that have spectroscopy. Right: same as the left panel with the exception that the yellow contours correspond to the density of galaxies for which the maximum $m_i$ is set to the maximum $m_i$ of the galaxies with spectroscopy in the same redshift bin. Any mismatch between the contours implies biased spectroscopic sampling of the selected LRGs. The spectroscopic sampling of the $\mathtt{luminous}$ sample is unbiased up to $z\simeq 0.56$ and there is some mismatch between the color distributions at higher redshift bins $z \leq 0.56$ (Left Panel). The biased spectroscopic sampling of the galaxies is somewhat reduced after forcing the galaxies to have an upper limit magnitude set by the maximum magnitude of the galaxies with spectroscopy (Right Panel).}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/dense_color_before.png}
+\includegraphics[width=\columnwidth]{figures/dense_color_after.png}
+\end{tabular}
+\caption{\label{fig:color_dense}Same as Figure~\ref{fig:color_lum} but for galaxies in the $\mathtt{dense}$ sample. The mismatch between the color distribution of the $\mathtt{dense}$ sample galaxies and the $\mathtt{dense}$ sample galaxies with spectroscopy for $z>0.36$ is evident. The mismatch implies biased spectroscopic sampling of these galaxies for $z>0.36$ (Left Panel). The biased spectroscopic sampling however, is reduced after enforcing the galaxies in the $\mathtt{dense}$ sample to have the same maximum $m_i$ as the galaxies with spectroscopic redshift (Right Panel).}
+\end{figure*}
+
+\begin{figure*}
+ \begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{figures/outlier_dense.png}
+\includegraphics[width=\columnwidth]{figures/outlier_lum.png}
+\end{tabular}
+\caption{\label{fig:outlier} The rate of 5$\sigma$ outliers for the two samples: the $\mathtt{dense}$ sample (Left) and the $\mathtt{luminous}$ sample (Right).}
+\end{figure*}
+
+
+\section*{Acknowledgements}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% REFERENCES %%%%%%%%%%%%%%%%%%
+% BibTeX:
+
+\bibliographystyle{mnras}
+\bibliography{references}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%% APPENDICES %%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+\section{Place-holder for appendix}
+
+\bsp	% typesetting comment
+\label{lastpage}
+\end{document}
